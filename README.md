@@ -1,28 +1,37 @@
 # Inverted Index
+
 Didactic inverted index
+
+## Requirements
+
+- C++11
+- CMake
+- GNU Make
+
+## Compiling
+
+```bash
+$ mkdir build && cd build && cmake .. && make
+```
 
 ## Downloading data
 
 Download and uncompress 10 WET files containing crawling data:
 
 ```bash
+$ mkdir data
+$ cd data/
 $ wget https://commoncrawl.s3.amazonaws.com/crawl-data/CC-MAIN-2019-39/wet.paths.gz
 $ gzip -d wet.paths.gz
 $ head -n 10 wet.paths | xargs -I {} wget "https://commoncrawl.s3.amazonaws.com/{}"
 $ gzip -d CC-MAIN*
 ```
 
-## Parsing data
+## Running
 
 Parse WET document and save parsed words to a file.
 
 ```bash
-$ python process_wet.py CC-MAIN-20190915052433-20190915074433-00000.warc.wet > parser.00000
-```
-
-Each line contains a URL and parsed words, separated by tabs. Example:
-
-```
-https://www.nyu.edu New York    University
-https://www.unb.br  Universidade    de  Brasília
+$ cd build
+$ ./InvertedIndex
 ```
