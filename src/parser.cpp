@@ -4,21 +4,26 @@ Parser::Parser(std::string path) : path(path), eof(false) {
     this->infile.open(path);
 }
 
-std::pair<std::string, std::vector<std::string>> Parser::getDocument() {
-    auto lines = this->getDocumentLines();
-    auto headers = this->getDocumentHeaders(lines);
-    auto content = this->getDocumentContent(lines);
-    auto url = this->getDocumentURL(headers);
-    auto words = this->getDocumentWords(content);
-    return std::pair(url, words);
+std::shared_ptr<Document> Parser::parseDocument() {
+    auto lines = this->parseDocumentLines();
+    auto headers = this->parseDocumentHeaders(lines);
+    auto content = this->parseDocumentContent(lines);
+    auto url = this->parseDocumentURL(headers);
+    auto words = this->parseDocumentWords(content);
+
+    std::shared_ptr<Document> document;
+    if (this->isValidParsedDocument(url))
+        document = std::make_shared<Document>(url, words);
+
+    return document;
 }
 
-std::vector<std::string> Parser::getDocumentLines() {
+std::vector<std::string> Parser::parseDocumentLines() {
     std::vector<std::string> lines;
     std::string line;
 
     while (true) {
-        line = this->getLine();
+        line = this->parseLine();
 
         // Stop reading when EOF
         if (this->isEOF())
@@ -34,7 +39,7 @@ std::vector<std::string> Parser::getDocumentLines() {
     return lines;
 }
 
-std::string Parser::getLine() {
+std::string Parser::parseLine() {
     std::stringstream ss;
     std::string line;
 
@@ -67,7 +72,7 @@ bool Parser::isDocumentBegin(std::string line) {
     return line == "WARC/1.0";
 }
 
-std::vector<std::string> Parser::getDocumentHeaders(std::vector<std::string> lines) {
+std::vector<std::string> Parser::parseDocumentHeaders(std::vector<std::string> lines) {
     std::vector<std::string> headers;
 
     for (auto line : lines) {
@@ -84,7 +89,7 @@ bool Parser::isLastHeader(std::string line) {
     return line.rfind("Content-Length: ", 0) == 0;
 }
 
-std::vector<std::string> Parser::getDocumentContent(std::vector<std::string> lines) {
+std::vector<std::string> Parser::parseDocumentContent(std::vector<std::string> lines) {
     std::vector<std::string> content;
     int i = 0;
 
@@ -101,7 +106,7 @@ std::vector<std::string> Parser::getDocumentContent(std::vector<std::string> lin
     return content;
 }
 
-std::string Parser::getDocumentURL(std::vector<std::string> headers) {
+std::string Parser::parseDocumentURL(std::vector<std::string> headers) {
     std::string url;
 
     for (auto header : headers) {
@@ -116,7 +121,7 @@ bool Parser::isURLHeader(std::string line) {
     return line.rfind("WARC-Target-URI: ", 0) == 0;
 }
 
-std::vector<std::string> Parser::getDocumentWords(std::vector<std::string> lines) {
+std::vector<std::string> Parser::parseDocumentWords(std::vector<std::string> lines) {
     std::vector<std::string> words;
     std::stringstream ss;
     std::string word;
@@ -143,4 +148,8 @@ std::vector<std::string> Parser::getDocumentWords(std::vector<std::string> lines
 
 bool Parser::isValidCharacter(char c) {
     return isalnum(c);
+}
+
+bool Parser::isValidParsedDocument(std::string url) {
+    return !url.empty();
 }

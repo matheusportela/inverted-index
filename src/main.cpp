@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "document.hpp"
 #include "parser.hpp"
 
 int main() {
@@ -15,11 +16,18 @@ int main() {
     int count = 0;
 
     while (!parser.isEOF()) {
-        auto [url, words] = parser.getDocument();
+        auto document = parser.parseDocument();
+
+        if (!document)
+            continue;
+
         count++;
-        // LOG_D("URL: " + url);
+
+        LOG_D("ID: " << document->getID());
+        LOG_D("URL: " + document->getURL());
+        LOG_D("Size: " << document->getSize());
         // LOG_D("Words:");
-        // for (auto word : words)
+        // for (auto word : document->getWords())
         //     LOG_D(word);
     }
 

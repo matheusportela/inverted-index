@@ -5,10 +5,12 @@
 
 #include <ctype.h>
 #include <fstream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include "document.hpp"
 #include "log.hpp"
 
 class Parser {
@@ -16,16 +18,16 @@ class Parser {
     // Initialize parser with path containing WET file
     Parser(std::string path);
 
-    // Read document from WET file and return pair (url, words)
-    std::pair<std::string, std::vector<std::string>> getDocument();
+    // Read document from WET file. If parsed document is invalid, returns nullptr.
+    std::shared_ptr<Document> parseDocument();
 
     // Check whether document has reached end-of-file
     bool isEOF();
 
   private:
-    std::vector<std::string> getDocumentLines();
+    std::vector<std::string> parseDocumentLines();
 
-    std::string getLine();
+    std::string parseLine();
 
     void setEOF();
 
@@ -33,19 +35,21 @@ class Parser {
 
     void processLine(std::string line);
 
-    std::vector<std::string> getDocumentHeaders(std::vector<std::string> lines);
+    std::vector<std::string> parseDocumentHeaders(std::vector<std::string> lines);
 
     bool isLastHeader(std::string line);
 
-    std::vector<std::string> getDocumentContent(std::vector<std::string> lines);
+    std::vector<std::string> parseDocumentContent(std::vector<std::string> lines);
 
-    std::string getDocumentURL(std::vector<std::string> headers);
+    std::string parseDocumentURL(std::vector<std::string> headers);
 
     bool isURLHeader(std::string line);
 
-    std::vector<std::string> getDocumentWords(std::vector<std::string> content);
+    std::vector<std::string> parseDocumentWords(std::vector<std::string> content);
 
     bool isValidCharacter(char c);
+
+    bool isValidParsedDocument(std::string url);
 
     // Document to parse
     std::string path;
