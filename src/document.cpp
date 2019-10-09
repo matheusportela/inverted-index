@@ -2,8 +2,8 @@
 
 int Document::nextAvailableID = 0;
 
-Document::Document(std::string url, std::vector<std::string> words) :
-    id(Document::nextAvailableID), url(url), words(words) {
+Document::Document(std::string url, std::vector<std::pair<std::string, int>> frequencies) :
+    id(Document::nextAvailableID), url(url), frequencies(frequencies) {
     Document::nextAvailableID++;
 }
 
@@ -15,10 +15,10 @@ std::string Document::getURL() {
     return this->url;
 }
 
-std::vector<std::string> Document::getWords() {
-    return this->words;
+std::vector<std::pair<std::string, int>> Document::getFrequencies() {
+    return this->frequencies;
 }
 
 int Document::getSize() {
-    return this->words.size();
+    return this->frequencies.size();
 }

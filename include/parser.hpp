@@ -45,9 +45,11 @@ class Parser {
 
     bool isURLHeader(std::string line);
 
-    std::vector<std::string> parseDocumentWords(std::vector<std::string> content);
+    std::vector<std::string> parseDocumentTerms(std::vector<std::string> content);
 
     bool isValidCharacter(char c);
+
+    std::vector<std::pair<std::string, int>> calculateFrequencies(std::vector<std::string> terms);
 
     bool isValidParsedDocument(std::string url);
 

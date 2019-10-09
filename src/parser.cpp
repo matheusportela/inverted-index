@@ -9,11 +9,12 @@ std::shared_ptr<Document> Parser::parseDocument() {
     auto headers = this->parseDocumentHeaders(lines);
     auto content = this->parseDocumentContent(lines);
     auto url = this->parseDocumentURL(headers);
-    auto words = this->parseDocumentWords(content);
+    auto terms = this->parseDocumentTerms(content);
+    auto frequencies = this->calculateFrequencies(terms);
 
     std::shared_ptr<Document> document;
     if (this->isValidParsedDocument(url))
-        document = std::make_shared<Document>(url, words);
+        document = std::make_shared<Document>(url, frequencies);
 
     return document;
 }
@@ -121,10 +122,10 @@ bool Parser::isURLHeader(std::string line) {
     return line.rfind("WARC-Target-URI: ", 0) == 0;
 }
 
-std::vector<std::string> Parser::parseDocumentWords(std::vector<std::string> lines) {
-    std::vector<std::string> words;
+std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lines) {
+    std::vector<std::string> terms;
     std::stringstream ss;
-    std::string word;
+    std::string term;
 
     for (auto line : lines) {
         for (int i = 0; i < line.size(); i++) {
@@ -132,10 +133,10 @@ std::vector<std::string> Parser::parseDocumentWords(std::vector<std::string> lin
                 // Push char to buffer
                 ss << line[i];
             } else {
-                // Push new word from buffer
-                word = ss.str();
-                if (!word.empty())
-                    words.push_back(word);
+                // Push new term from buffer
+                term = ss.str();
+                if (!term.empty())
+                    terms.push_back(term);
 
                 // Clear buffer
                 ss.str(std::string());
@@ -143,11 +144,29 @@ std::vector<std::string> Parser::parseDocumentWords(std::vector<std::string> lin
         }
     }
 
-    return words;
+    return terms;
 }
 
 bool Parser::isValidCharacter(char c) {
     return isalnum(c);
+}
+
+std::vector<std::pair<std::string, int>> Parser::calculateFrequencies(std::vector<std::string> terms) {
+    std::vector<std::pair<std::string, int>> frequencies;
+    std::map<std::string, int> wordCount;
+
+    for (auto term : terms) {
+        if (wordCount.count(term) == 0)
+            wordCount[term] = 1;
+        else
+            wordCount[term]++;
+    }
+
+    for (auto pair : wordCount) {
+        frequencies.push_back(pair);
+    }
+
+    return frequencies;
 }
 
 bool Parser::isValidParsedDocument(std::string url) {
