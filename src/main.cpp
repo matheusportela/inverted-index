@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "document.hpp"
+#include "document_table.hpp"
 #include "parser.hpp"
 
 int main() {
@@ -11,17 +12,17 @@ int main() {
 
     LOG_I("Parsing " + path);
 
+    DocumentTable documentTable;
     Parser parser(path);
 
-    int count = 0;
-
     while (!parser.isEOF()) {
+        if (documentTable.size() == 10)
+            break;
+
         auto document = parser.parseDocument();
 
         if (!document)
             continue;
-
-        count++;
 
         LOG_D("ID: " << document->getID());
         LOG_D("URL: " + document->getURL());
@@ -29,10 +30,16 @@ int main() {
         // LOG_D("Words:");
         // for (auto word : document->getWords())
         //     LOG_D(word);
+
+        documentTable.addDocument(document);
     }
 
     LOG_I("Finished parsing " + path);
-    LOG_I("Read " + std::to_string(count) + " documents");
+    LOG_I("Read " << documentTable.size() << " documents");
+
+    auto documentID = 6;
+    LOG_D("Document " << documentID << " URL: " << documentTable.getDocumentURL(documentID));
+    LOG_D("Document " << documentID << " Size: " << documentTable.getDocumentSize(documentID));
 
     return 0;
 }

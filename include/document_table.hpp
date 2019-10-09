@@ -7,8 +7,22 @@
 #ifndef DOCUMENT_TABLE_HPP
 #define DOCUMENT_TABLE_HPP
 
-class DocumentTable {
+#include <map>
+#include <memory>
+#include <string>
+#include <tuple>
 
+#include "document.hpp"
+
+class DocumentTable {
+  public:
+    int size();
+    void addDocument(std::shared_ptr<Document> document);
+    std::string getDocumentURL(int documentID);
+    int getDocumentSize(int documentID);
+
+  private:
+    std::map<int, std::tuple<std::string, int>> table;
 };
 
 #endif // DOCUMENT_TABLE_HPP
