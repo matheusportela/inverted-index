@@ -24,6 +24,7 @@ class InvertedIndex {
     std::vector<std::pair<doc_id, int>> search(term_id termID);
 
     void write_intermediate_postings(std::string path, Lexicon lexicon);
+    void read_intermediate_postings(std::string path);
 
   private:
     std::map<term_id, std::vector<std::pair<doc_id, int>>> index;

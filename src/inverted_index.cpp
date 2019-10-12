@@ -37,3 +37,25 @@ void InvertedIndex::write_intermediate_postings(std::string path, Lexicon lexico
 
     fd.close();
 }
+
+void InvertedIndex::read_intermediate_postings(std::string path) {
+    std::ofstream fd(path);
+
+    // for (auto [termID, frequencies] : this->index) {
+    //     for (auto [docID, count] : frequencies) {
+    //         // fd << term_id;
+    //         fd << term;
+    //         fd << ' ';
+    //         fd << '(';
+    //         fd << docID;
+    //         fd << ' ';
+    //         fd << count;
+    //         fd << ')';
+    //         fd << ' ';
+    //         fd << '\n';
+    //     }
+    // }
+
+    fd.close();
+}
+
