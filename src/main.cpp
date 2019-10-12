@@ -30,7 +30,7 @@ int main() {
         auto output = "index" + std::to_string(i) + ".txt";
 
         indexDocument(paths[i], documentTable, lexicon, inverted_index);
-        inverted_index.write_intermediate_index(output, lexicon);
+        inverted_index.write_intermediate_postings(output, lexicon);
     }
 
     LOG_I("Document table size: " << documentTable.size());

@@ -15,7 +15,7 @@ std::vector<std::pair<doc_id, int>> InvertedIndex::search(term_id termID) {
     return this->index[termID];
 }
 
-void InvertedIndex::write_intermediate_index(std::string path, Lexicon lexicon) {
+void InvertedIndex::write_intermediate_postings(std::string path, Lexicon lexicon) {
     std::ofstream fd(path);
 
     for (auto [termID, frequencies] : this->index) {
