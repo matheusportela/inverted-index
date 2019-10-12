@@ -16,4 +16,4 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 # Create executable file
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(inverted_index ${SOURCES})

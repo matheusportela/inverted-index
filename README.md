@@ -33,5 +33,6 @@ Parse WET document and save parsed words to a file.
 
 ```bash
 $ cd build
-$ ./InvertedIndex
+$ make
+$ ./inverted_index
 ```
