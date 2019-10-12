@@ -14,14 +14,15 @@
 #include <vector>
 
 #include "document.hpp"
+#include "types.hpp"
 
 class InvertedIndex {
   public:
     void add(std::shared_ptr<Document> document);
-    std::vector<std::pair<int, int>> search(std::string term);
+    std::vector<std::pair<doc_id, int>> search(term_id termID);
 
   private:
-    std::map<std::string, std::vector<std::pair<int, int>>> index;
+    std::map<term_id, std::vector<std::pair<doc_id, int>>> index;
 };
 
 #endif // INVERTED_INDEX_HPP

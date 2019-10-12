@@ -11,12 +11,22 @@
 #include <map>
 #include <string>
 
-typedef int term_id;
+#include "types.hpp"
 
 class Lexicon {
   public:
+    // Return number of terms in lexicon
+    int size();
+
+    // Check whether term exists in lexicon
+    bool contains(std::string term);
+
     // Add term to lexicon and return term ID
     term_id addTerm(std::string term);
+
+    // Add term to lexicon and return term ID if it does not exist. Otherwise,
+    // simply return the existing term ID
+    term_id addOrGetTerm(std::string term);
 
     term_id getID(std::string term);
     std::string getTerm(term_id id);
