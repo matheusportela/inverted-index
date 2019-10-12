@@ -7,6 +7,7 @@
 #ifndef INVERTED_INDEX_HPP
 #define INVERTED_INDEX_HPP
 
+#include <fstream>
 #include <memory>
 #include <map>
 #include <string>
@@ -15,11 +16,14 @@
 
 #include "document.hpp"
 #include "types.hpp"
+#include "lexicon.hpp"
 
 class InvertedIndex {
   public:
     void add(std::shared_ptr<Document> document);
     std::vector<std::pair<doc_id, int>> search(term_id termID);
+
+    void dump(std::string path, Lexicon lexicon);
 
   private:
     std::map<term_id, std::vector<std::pair<doc_id, int>>> index;

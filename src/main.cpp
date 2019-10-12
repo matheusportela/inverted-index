@@ -34,6 +34,8 @@ int main() {
     // for (int i = 0; i < lexicon.size(); i++)
     //     searchTermByID(i, lexicon, inverted_index);
 
+    inverted_index.dump("index.txt", lexicon);
+
     return 0;
 }
 
@@ -44,7 +46,8 @@ void indexDocument(std::string path, DocumentTable& documentTable, Lexicon& lexi
     Parser parser(path);
 
     while (!parser.isEOF()) {
-        if (documentTable.size() == 10)
+        // if (documentTable.size() == 10)
+        if (documentTable.size() == 2)
             break;
 
         auto [url, frequencies] = parser.parseDocument();
