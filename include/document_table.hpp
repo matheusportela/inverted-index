@@ -18,11 +18,12 @@ class DocumentTable {
   public:
     int size();
     void addDocument(std::shared_ptr<Document> document);
-    std::string getDocumentURL(int documentID);
-    int getDocumentSize(int documentID);
+    std::string getDocumentURL(doc_id documentID);
+    int getDocumentSize(doc_id documentID);
 
   private:
-    std::map<int, std::tuple<std::string, int>> table;
+    // Maps doc_id to (URL, page size)
+    std::map<doc_id, std::tuple<std::string, int>> table;
 };
 
 #endif // DOCUMENT_TABLE_HPP

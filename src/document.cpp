@@ -1,13 +1,13 @@
 #include "document.hpp"
 
-int Document::nextAvailableID = 0;
+doc_id Document::nextAvailableID = 0;
 
 Document::Document(std::string url, std::vector<std::pair<std::string, int>> frequencies) :
     id(Document::nextAvailableID), url(url), frequencies(frequencies) {
     Document::nextAvailableID++;
 }
 
-int Document::getID() {
+doc_id Document::getID() {
     return this->id;
 }
 

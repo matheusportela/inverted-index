@@ -9,10 +9,10 @@ void DocumentTable::addDocument(std::shared_ptr<Document> document) {
     this->table[document->getID()] = tuple;
 }
 
-std::string DocumentTable::getDocumentURL(int documentID) {
+std::string DocumentTable::getDocumentURL(doc_id documentID) {
     return std::get<0>(this->table[documentID]);
 }
 
-int DocumentTable::getDocumentSize(int documentID) {
+int DocumentTable::getDocumentSize(doc_id documentID) {
     return std::get<1>(this->table[documentID]);
 }

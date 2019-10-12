@@ -3,6 +3,7 @@
 #include "document.hpp"
 #include "document_table.hpp"
 #include "inverted_index.hpp"
+#include "lexicon.hpp"
 #include "parser.hpp"
 
 int main() {
@@ -15,6 +16,8 @@ int main() {
 
     InvertedIndex index;
     DocumentTable documentTable;
+    Lexicon lexicon;
+
     Parser parser(path);
 
     while (!parser.isEOF()) {
