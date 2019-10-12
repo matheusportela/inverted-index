@@ -46,8 +46,7 @@ void indexDocument(std::string path, DocumentTable& documentTable, Lexicon& lexi
     Parser parser(path);
 
     while (!parser.isEOF()) {
-        // if (documentTable.size() == 10)
-        if (documentTable.size() == 2)
+        if (documentTable.size() == 10)
             break;
 
         auto [url, frequencies] = parser.parseDocument();

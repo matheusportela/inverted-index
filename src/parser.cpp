@@ -137,6 +137,14 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
                 ss.str(std::string());
             }
         }
+
+        // Push new term from buffer whenever line has finished
+        term = ss.str();
+        if (!term.empty())
+            terms.push_back(term);
+
+        // Clear buffer
+        ss.str(std::string());
     }
 
     return terms;
