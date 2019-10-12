@@ -16,25 +16,34 @@ void searchTermByID(term_id termID, Lexicon& lexicon, InvertedIndex& inverted_in
 int main() {
     LOG_SET_DEBUG();
 
-    // std::string path = "../data/test.wet";
-    std::string path = "../data/CC-MAIN-20190915052433-20190915074433-00000.warc.wet";
-
-    InvertedIndex inverted_index;
     DocumentTable documentTable;
     Lexicon lexicon;
 
-    indexDocument(path, documentTable, lexicon, inverted_index);
+    std::vector<std::string> paths = {
+        "../data/CC-MAIN-20190915052433-20190915074433-00000.warc.wet",
+        "../data/CC-MAIN-20190915052433-20190915074433-00001.warc.wet",
+    };
+
+    for (int i = 0; i < paths.size(); i++) {
+        InvertedIndex inverted_index;
+        auto input = paths[i];
+        auto output = "index" + std::to_string(i) + ".txt";
+
+        indexDocument(paths[i], documentTable, lexicon, inverted_index);
+        inverted_index.write_intermediate_index(output, lexicon);
+    }
 
     LOG_I("Document table size: " << documentTable.size());
     LOG_I("Lexicon size: " << lexicon.size());
 
+    documentTable.write("document_table.txt");
+    lexicon.write("lexicon.txt");
+
     // searchDocumentMetadata(6, documentTable);
-    searchTermByString("Google", lexicon, inverted_index);
+    // searchTermByString("Google", lexicon, inverted_index);
 
     // for (int i = 0; i < lexicon.size(); i++)
     //     searchTermByID(i, lexicon, inverted_index);
-
-    inverted_index.dump("index.txt", lexicon);
 
     return 0;
 }
@@ -46,7 +55,7 @@ void indexDocument(std::string path, DocumentTable& documentTable, Lexicon& lexi
     Parser parser(path);
 
     while (!parser.isEOF()) {
-        if (documentTable.size() == 10)
+        if (numParsedDocuments == 100)
             break;
 
         auto [url, frequencies] = parser.parseDocument();

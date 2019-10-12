@@ -8,6 +8,7 @@
 #ifndef LEXICON_HPP
 #define LEXICON_HPP
 
+#include <fstream>
 #include <map>
 #include <string>
 
@@ -30,6 +31,8 @@ class Lexicon {
 
     term_id getID(std::string term);
     std::string getTerm(term_id id);
+
+    void write(std::string path);
 
     static term_id nextAvailableID;
 

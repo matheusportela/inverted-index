@@ -7,6 +7,7 @@
 #ifndef DOCUMENT_TABLE_HPP
 #define DOCUMENT_TABLE_HPP
 
+#include <fstream>
 #include <map>
 #include <memory>
 #include <string>
@@ -20,6 +21,8 @@ class DocumentTable {
     void addDocument(std::shared_ptr<Document> document);
     std::string getDocumentURL(doc_id documentID);
     int getDocumentSize(doc_id documentID);
+
+    void write(std::string path);
 
   private:
     // Maps doc_id to (URL, page size)

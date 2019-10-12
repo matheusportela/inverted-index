@@ -23,7 +23,7 @@ class InvertedIndex {
     void add(std::shared_ptr<Document> document);
     std::vector<std::pair<doc_id, int>> search(term_id termID);
 
-    void dump(std::string path, Lexicon lexicon);
+    void write_intermediate_index(std::string path, Lexicon lexicon);
 
   private:
     std::map<term_id, std::vector<std::pair<doc_id, int>>> index;

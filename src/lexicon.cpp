@@ -35,3 +35,16 @@ term_id Lexicon::getID(std::string term) {
 std::string Lexicon::getTerm(term_id id) {
     return this->idToStringMap[id];
 }
+
+void Lexicon::write(std::string path) {
+        std::ofstream fd(path);
+
+    for (auto [termID, term] : this->idToStringMap) {
+        fd << termID;
+        fd << ' ';
+        fd << term;
+        fd << '\n';
+    }
+
+    fd.close();
+}
