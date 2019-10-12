@@ -5,12 +5,12 @@
 
 #include <ctype.h>
 #include <fstream>
-#include <memory>
+#include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "document.hpp"
 #include "log.hpp"
 
 class Parser {
@@ -18,8 +18,9 @@ class Parser {
     // Initialize parser with path containing WET file
     Parser(std::string path);
 
-    // Read document from WET file. If parsed document is invalid, returns nullptr.
-    std::shared_ptr<Document> parseDocument();
+    // Read document from WET file. Returns URL and term count as a vector of
+    // (string, int)
+    std::pair<std::string, std::vector<std::pair<std::string, int>>> parseDocument();
 
     // Check whether document has reached end-of-file
     bool isEOF();
@@ -50,8 +51,6 @@ class Parser {
     bool isValidCharacter(char c);
 
     std::vector<std::pair<std::string, int>> calculateFrequencies(std::vector<std::string> terms);
-
-    bool isValidParsedDocument(std::string url);
 
     // Document to parse
     std::string path;

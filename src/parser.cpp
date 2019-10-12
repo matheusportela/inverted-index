@@ -4,19 +4,14 @@ Parser::Parser(std::string path) : path(path), eof(false) {
     this->infile.open(path);
 }
 
-std::shared_ptr<Document> Parser::parseDocument() {
+std::pair<std::string, std::vector<std::pair<std::string, int>>> Parser::parseDocument() {
     auto lines = this->parseDocumentLines();
     auto headers = this->parseDocumentHeaders(lines);
     auto content = this->parseDocumentContent(lines);
     auto url = this->parseDocumentURL(headers);
     auto terms = this->parseDocumentTerms(content);
     auto frequencies = this->calculateFrequencies(terms);
-
-    std::shared_ptr<Document> document;
-    if (this->isValidParsedDocument(url))
-        document = std::make_shared<Document>(url, frequencies);
-
-    return document;
+    return std::make_pair(url, frequencies);
 }
 
 std::vector<std::string> Parser::parseDocumentLines() {
@@ -167,8 +162,4 @@ std::vector<std::pair<std::string, int>> Parser::calculateFrequencies(std::vecto
     }
 
     return frequencies;
-}
-
-bool Parser::isValidParsedDocument(std::string url) {
-    return !url.empty();
 }

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include "document.hpp"
 #include "document_table.hpp"
@@ -24,9 +25,13 @@ int main() {
         if (documentTable.size() == 10)
             break;
 
-        auto document = parser.parseDocument();
-        if (!document)
+        auto [url, frequencies] = parser.parseDocument();
+
+        // Ignore parsed documents without URL
+        if (url.empty())
             continue;
+
+        auto document = std::make_shared<Document>(url, frequencies);
 
         LOG_D("ID: " << document->getID());
         LOG_D("URL: " + document->getURL());
