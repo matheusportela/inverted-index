@@ -14,3 +14,77 @@ void InvertedIndex::add(std::shared_ptr<Document> document) {
 std::vector<std::pair<doc_id, int>> InvertedIndex::search(term_id termID) {
     return this->index[termID];
 }
+
+void InvertedIndex::buildFromIntermediatePostings(std::string inputPath, std::string outputPath) {
+    this->input.open(inputPath);
+    this->output.open(outputPath, std::ofstream::out | std::ofstream::trunc);
+
+    while (this->input.good()) {
+        auto posting = this->readPosting();
+
+        // Check whether file stream is EOF _after_ reading post because there
+        // is a trailing empty line at the end of the file
+        if (this->input.eof())
+            break;
+
+        this->processPosting(posting);
+    }
+
+    this->flushInvertedList();
+
+    this->input.close();
+    this->output.close();
+}
+
+std::tuple<term_id, doc_id, int> InvertedIndex::readPosting() {
+    term_id termID;
+    doc_id docID;
+    int count;
+
+    this->input >> termID;
+    this->input >> docID;
+    this->input >> count;
+
+    return std::make_tuple(termID, docID, count);
+}
+
+void InvertedIndex::processPosting(std::tuple<term_id, doc_id, int> posting) {
+    auto [termID, docID, count] = posting;
+
+    // LOG_D("Posting: " + std::to_string(termID) + " " + std::to_string(docID) + " " + std::to_string(count));
+
+    if (this->isNewTerm(termID)) {
+        this->flushInvertedList();
+        this->createInvertedList(termID);
+    }
+
+    this->currentDocIDs.push_back(docID);
+    this->currentFrequencies.push_back(count);
+}
+
+bool InvertedIndex::isNewTerm(term_id termID) {
+    return termID != this->currentTermID;
+}
+
+void InvertedIndex::createInvertedList(term_id termID) {
+    this->currentTermID = termID;
+    this->currentDocIDs.clear();
+    this->currentFrequencies.clear();
+}
+
+void InvertedIndex::flushInvertedList() {
+    this->output << "t: " << this->currentTermID;
+    this->output << "\ts: ";
+    this->output << this->currentDocIDs.size();
+    this->output << "\td: ";
+
+    for (auto docID : this->currentDocIDs)
+        this->output << docID << " ";
+
+    this->output << "\tf: ";
+
+    for (auto frequency : this->currentFrequencies)
+        this->output << frequency << " ";
+
+    this->output << "\n";
+}

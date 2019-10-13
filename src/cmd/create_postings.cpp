@@ -12,7 +12,8 @@ void createIntermediatePostings(std::string inputPath, std::string outputPath, D
 void writeIntermediatePostings(std::string path, std::shared_ptr<Document> document);
 
 int main() {
-    LOG_SET_DEBUG();
+    // LOG_SET_DEBUG();
+    LOG_SET_INFO();
 
     DocumentTable documentTable;
     Lexicon lexicon;
