@@ -17,7 +17,8 @@ std::vector<std::pair<doc_id, int>> InvertedIndex::search(term_id termID) {
 
 void InvertedIndex::buildFromIntermediatePostings(std::string inputPath, std::string outputPath) {
     this->input.open(inputPath);
-    this->output.open(outputPath, std::ofstream::out | std::ofstream::trunc);
+    // this->output.open(outputPath, std::ofstream::out | std::ofstream::trunc);
+    this->output.open(outputPath, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
 
     while (this->input.good()) {
         auto posting = this->readPosting();
@@ -73,18 +74,36 @@ void InvertedIndex::createInvertedList(term_id termID) {
 }
 
 void InvertedIndex::flushInvertedList() {
-    this->output << "t: " << this->currentTermID;
-    this->output << "\ts: ";
-    this->output << this->currentDocIDs.size();
-    this->output << "\td: ";
+    // this->output << "t: " << this->currentTermID;
+    // this->output << "\ts: ";
+    // this->output << this->currentDocIDs.size();
+    // this->output << "\td: ";
 
-    for (auto docID : this->currentDocIDs)
-        this->output << docID << " ";
+    // for (auto docID : this->currentDocIDs)
+    //     this->output << docID << " ";
 
-    this->output << "\tf: ";
+    // this->output << "\tf: ";
 
-    for (auto frequency : this->currentFrequencies)
-        this->output << frequency << " ";
+    // for (auto frequency : this->currentFrequencies)
+    //     this->output << frequency << " ";
 
-    this->output << "\n";
+    // this->output << "\n";
+
+    uint32_t termID = this->currentTermID;
+    uint32_t size = this->currentDocIDs.size();
+
+    this->output.write((char*)&termID, sizeof(termID));
+    this->output.write((char*)&size, sizeof(size));
+
+    int previousDocID = 0;
+    for (auto docID : this->currentDocIDs) {
+        uint32_t compressedDocID = docID - previousDocID;
+        previousDocID = docID;
+        this->output.write((char*)&compressedDocID, sizeof(compressedDocID));
+    }
+
+    for (auto frequency : this->currentFrequencies) {
+        uint32_t freq = frequency;
+        this->output.write((char*)&freq, sizeof(freq));
+    }
 }
