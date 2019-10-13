@@ -28,16 +28,18 @@ $ gzip -d CC-MAIN*.gz
 $ mv CC-MAIN*.wet common-crawl
 ```
 
-## Running
+## Indexing data
 
-Parse WET document and save parsed words to a file.
+Index all WET documents in `data/common-crawl`.
 
 ```bash
-$ cd build
-$ make
-$ ./create_postings
-$ cd ..
-$ ./merge.sh
-$ cd -
-$ ./create_index
+$ ./create_inverted_index.sh
+```
+
+## Searching
+
+Search for single-word terms in inverted index.
+
+```bash
+$ ./search.sh
 ```

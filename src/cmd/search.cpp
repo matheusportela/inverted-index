@@ -30,7 +30,7 @@ int main() {
     std::string term;
 
     while (true) {
-        std::cout << ">> ";
+        std::cout << "> ";
         std::cin >> term;
 
         LOG_D("Searching for term '" << term << "'");
