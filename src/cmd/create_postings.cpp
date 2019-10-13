@@ -62,7 +62,7 @@ std::vector<std::string> getFilePaths(std::string directoryPath) {
 }
 
 std::string getPostingPath(std::string postingsPath, int postingNumber) {
-    return postingsPath + "/postings" + std::to_string(postingNumber) + ".txt";
+    return postingsPath + "/postings-" + std::to_string(postingNumber) + ".txt";
 }
 
 void createIntermediatePostings(std::string inputPath, std::string outputPath, DocumentTable& documentTable, Lexicon& lexicon) {

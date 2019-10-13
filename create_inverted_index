@@ -7,7 +7,7 @@ cd build
 ./create_postings
 
 cd ..
-./merge_postings.sh
+./merge_postings
 
 cd build
 ./create_index

@@ -33,7 +33,7 @@ $ mv CC-MAIN*.wet common-crawl
 Index all WET documents in `data/common-crawl`.
 
 ```bash
-$ ./create_inverted_index.sh
+$ ./create-inverted-index
 ```
 
 ## Searching
@@ -41,5 +41,5 @@ $ ./create_inverted_index.sh
 Search for single-word terms in inverted index.
 
 ```bash
-$ ./search.sh
+$ ./search
 ```
