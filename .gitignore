@@ -1,6 +1,7 @@
 # Directories
 build/
 data/
+tmp/
 
 # Prerequisites
 *.d

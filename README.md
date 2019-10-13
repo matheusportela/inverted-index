@@ -19,12 +19,13 @@ $ mkdir build && cd build && cmake .. && make
 Download and uncompress 10 WET files containing crawling data:
 
 ```bash
-$ mkdir data
+$ mkdir -p data/common-crawl
 $ cd data/
 $ wget https://commoncrawl.s3.amazonaws.com/crawl-data/CC-MAIN-2019-39/wet.paths.gz
 $ gzip -d wet.paths.gz
 $ head -n 10 wet.paths | xargs -I {} wget "https://commoncrawl.s3.amazonaws.com/{}"
 $ gzip -d CC-MAIN*.gz
+$ mv CC-MAIN*.wet common-crawl
 ```
 
 ## Running

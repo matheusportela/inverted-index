@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include <memory>
 
@@ -8,6 +9,8 @@
 #include "parser.hpp"
 #include "types.hpp"
 
+std::vector<std::string> getFilePaths(std::string directoryPath);
+std::string getPostingPath(std::string postingsPath, int postingNumber);
 void createIntermediatePostings(std::string inputPath, std::string outputPath, DocumentTable& documentTable, Lexicon& lexicon);
 void writeIntermediatePostings(std::string path, std::shared_ptr<Document> document);
 
@@ -15,17 +18,19 @@ int main() {
     // LOG_SET_DEBUG();
     LOG_SET_INFO();
 
+    const std::string inputDir = "../data/common-crawl";
+    const std::string outputDir = "../tmp";
+    const std::string documentTablePath = outputDir + "/document_table.txt";
+    const std::string lexiconPath = outputDir + "/lexicon.txt";
+
     DocumentTable documentTable;
     Lexicon lexicon;
 
-    std::vector<std::string> paths = {
-        "../data/CC-MAIN-20190915052433-20190915074433-00000.warc.wet",
-        "../data/CC-MAIN-20190915052433-20190915074433-00001.warc.wet",
-    };
+    std::vector<std::string> paths = getFilePaths(inputDir);
 
     for (int i = 0; i < paths.size(); i++) {
         auto input = paths[i];
-        auto output = "postings" + std::to_string(i) + ".txt";
+        auto output = getPostingPath(outputDir, i);
 
         // Erase output file if existing
         std::ofstream fd(output, std::ofstream::out | std::ofstream::trunc);
@@ -37,10 +42,23 @@ int main() {
     LOG_I("Document table size: " << documentTable.size());
     LOG_I("Lexicon size: " << lexicon.size());
 
-    documentTable.write("document_table.txt");
-    lexicon.write("lexicon.txt");
+    documentTable.write(documentTablePath);
+    lexicon.write(lexiconPath);
 
     return 0;
+}
+
+std::vector<std::string> getFilePaths(std::string directoryPath) {
+    std::vector<std::string> paths;
+
+    for (auto entry : std::filesystem::directory_iterator(directoryPath))
+        paths.push_back(entry.path());
+
+    return paths;
+}
+
+std::string getPostingPath(std::string postingsPath, int postingNumber) {
+    return postingsPath + "/postings" + std::to_string(postingNumber) + ".txt";
 }
 
 void createIntermediatePostings(std::string inputPath, std::string outputPath, DocumentTable& documentTable, Lexicon& lexicon) {

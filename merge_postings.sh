@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd build
+cd tmp
 for filename in postings*.txt; do
     echo "Sorting $filename"
     sort $filename > sorted-$filename
