@@ -24,14 +24,14 @@ class InvertedIndex {
     void add(std::shared_ptr<Document> document);
     std::vector<std::pair<doc_id, int>> search(term_id termID);
 
-    void buildFromIntermediatePostings(std::string inputPath, std::string outputPath);
+    void buildFromIntermediatePostings(std::string inputPath, std::string outputPath, Lexicon& lexicon);
 
   private:
     std::tuple<term_id, doc_id, int> readPosting();
-    void processPosting(std::tuple<term_id, doc_id, int> posting);
+    void processPosting(std::tuple<term_id, doc_id, int> posting, Lexicon& lexicon);
     bool isNewTerm(term_id termID);
     void createInvertedList(term_id termID);
-    void flushInvertedList();
+    void flushInvertedList(Lexicon& lexicon);
 
     std::map<term_id, std::vector<std::pair<doc_id, int>>> index;
 
@@ -41,6 +41,8 @@ class InvertedIndex {
     term_id currentTermID {0};
     std::vector<doc_id> currentDocIDs;
     std::vector<int> currentFrequencies;
+
+    int currentIndexOffset {0};
 };
 
 #endif // INVERTED_INDEX_HPP

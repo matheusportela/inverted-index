@@ -11,7 +11,9 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <tuple>
 
+#include "log.hpp"
 #include "types.hpp"
 
 class Lexicon {
@@ -32,15 +34,21 @@ class Lexicon {
     term_id getID(std::string term);
     std::string getTerm(term_id id);
 
+    void addTermMetadata(std::string term, term_id id, int invertedListStart, int invertedListEnd, int numDocs);
+
     void writeIntermediate(std::string path);
     void readIntermediate(std::string path);
+
     void write(std::string path);
+    void read(std::string path);
 
     static term_id nextAvailableID;
 
   private:
     std::map<std::string, term_id> stringToIDMap;
     std::map<term_id, std::string> idToStringMap;
+
+    std::map<std::string, std::tuple<term_id, int, int, int>> stringToMetadataMap;
 };
 
 #endif // LEXICON_HPP
