@@ -26,6 +26,8 @@ class InvertedIndex {
 
     void buildFromIntermediatePostings(std::string inputPath, std::string outputPath, Lexicon& lexicon);
 
+    std::vector<doc_id> getInvertedList(std::string path, int listStart);
+
   private:
     std::tuple<term_id, doc_id, int> readPosting();
     void processPosting(std::tuple<term_id, doc_id, int> posting, Lexicon& lexicon);

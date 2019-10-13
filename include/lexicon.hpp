@@ -34,6 +34,7 @@ class Lexicon {
     term_id getID(std::string term);
     std::string getTerm(term_id id);
 
+    std::tuple<term_id, int, int, int> getMetadata(std::string term);
     void addTermMetadata(std::string term, term_id id, int invertedListStart, int invertedListEnd, int numDocs);
 
     void writeIntermediate(std::string path);

@@ -36,6 +36,10 @@ std::string Lexicon::getTerm(term_id id) {
     return this->idToStringMap[id];
 }
 
+std::tuple<term_id, int, int, int> Lexicon::getMetadata(std::string term) {
+    return this->stringToMetadataMap[term];
+}
+
 void Lexicon::addTermMetadata(std::string term, term_id id, int invertedListStart, int invertedListEnd, int numDocs) {
     this->stringToMetadataMap[term] = std::make_tuple(id, invertedListStart, invertedListEnd, numDocs);
 }

@@ -120,3 +120,31 @@ void InvertedIndex::flushInvertedList(Lexicon& lexicon) {
     std::string term = lexicon.getTerm(termID);
     lexicon.addTermMetadata(term, termID, listStart, listEnd, numDocs);
 }
+
+std::vector<doc_id> InvertedIndex::getInvertedList(std::string path, int listStart) {
+    std::ifstream fd(path, std::ofstream::in | std::ofstream::binary);
+
+    uint32_t termID;
+    uint32_t numDocs;
+
+    fd.seekg(listStart);
+
+    fd.read((char*)&termID, sizeof(termID));
+    fd.read((char*)&numDocs, sizeof(numDocs));
+
+    std::vector<doc_id> documents;
+
+    uint32_t docID = 0;
+    uint32_t compressedDocID;
+
+    for (int i = 0; i < numDocs; i++) {
+        fd.read((char*)&compressedDocID, sizeof(compressedDocID));
+        docID += compressedDocID;
+
+        documents.push_back(docID);
+    }
+
+    fd.close();
+
+    return documents;
+}

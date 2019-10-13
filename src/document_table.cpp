@@ -33,3 +33,23 @@ void DocumentTable::write(std::string path) {
 
     fd.close();
 }
+
+void DocumentTable::read(std::string path) {
+    std::ifstream fd(path);
+    doc_id documentID;
+    std::string url;
+    int size;
+
+    while (fd.good()) {
+        fd >> documentID;
+        fd >> url;
+        fd >> size;
+
+        if (fd.eof())
+            break;
+
+        this->table[documentID] = std::make_tuple(url, size);
+    }
+
+    fd.close();
+}

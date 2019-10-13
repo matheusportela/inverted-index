@@ -23,6 +23,7 @@ class DocumentTable {
     int getDocumentSize(doc_id documentID);
 
     void write(std::string path);
+    void read(std::string path);
 
   private:
     // Maps doc_id to (URL, page size)
