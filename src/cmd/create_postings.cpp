@@ -118,5 +118,17 @@ void writeIntermediatePostings(std::string path, std::shared_ptr<Document> docum
         fd << '\n';
     }
 
+    // std::ofstream fd(path, std::ofstream::out | std::ofstream::app | std::ofstream::binary);
+
+    // for (auto [termID, count] : frequencies) {
+    //     uint32_t termIDValue = termID;
+    //     uint32_t docIDValue = docID;
+    //     uint32_t countValue = count;
+
+    //     fd.write((char*)&termIDValue, sizeof(termIDValue));
+    //     fd.write((char*)&docIDValue, sizeof(docIDValue));
+    //     fd.write((char*)&countValue, sizeof(countValue));
+    // }
+
     fd.close();
 }
