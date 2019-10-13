@@ -32,6 +32,8 @@ class Lexicon {
     term_id getID(std::string term);
     std::string getTerm(term_id id);
 
+    void writeIntermediate(std::string path);
+    void readIntermediate(std::string path);
     void write(std::string path);
 
     static term_id nextAvailableID;

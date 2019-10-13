@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Merging intermediate postings"
+
 cd tmp
 for filename in postings*.txt; do
     echo "Sorting $filename"
@@ -10,3 +12,5 @@ echo "Merging to merged-postings.txt"
 sort -m sorted-postings*.txt > merged-postings.txt
 
 rm sorted-postings*.txt
+
+echo "Merged intermediate postings"

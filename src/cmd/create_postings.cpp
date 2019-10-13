@@ -20,8 +20,10 @@ int main() {
 
     const std::string inputDir = "../data/common-crawl";
     const std::string outputDir = "../tmp";
-    const std::string documentTablePath = outputDir + "/document_table.txt";
-    const std::string lexiconPath = outputDir + "/lexicon.txt";
+    const std::string documentTablePath = outputDir + "/document-table.txt";
+    const std::string lexiconPath = outputDir + "/lexicon-intermediate.txt";
+
+    LOG_I("Creating intermediate structures");
 
     DocumentTable documentTable;
     Lexicon lexicon;
@@ -39,11 +41,13 @@ int main() {
         createIntermediatePostings(input, output, documentTable, lexicon);
     }
 
-    LOG_I("Document table size: " << documentTable.size());
-    LOG_I("Lexicon size: " << lexicon.size());
+    LOG_I("Creating document table of size " << documentTable.size() << " at " << documentTablePath);
+    LOG_I("Creating intermediate lexicon of size " << lexicon.size() << " at " << lexiconPath);
 
     documentTable.write(documentTablePath);
-    lexicon.write(lexiconPath);
+    lexicon.writeIntermediate(lexiconPath);
+
+    LOG_I("Created intermediate structures");
 
     return 0;
 }
@@ -99,7 +103,7 @@ void createIntermediatePostings(std::string inputPath, std::string outputPath, D
         numParsedDocuments++;
     }
 
-    LOG_D("Finished processing " + inputPath);
+    LOG_D("Processed " + inputPath);
     LOG_D("Read " << numParsedDocuments << " documents");
 }
 
