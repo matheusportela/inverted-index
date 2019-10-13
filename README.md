@@ -34,9 +34,9 @@ Parse WET document and save parsed words to a file.
 ```bash
 $ cd build
 $ make
-$ ./index_stage_1
+$ ./create_postings
 $ cd ..
 $ ./merge.sh
 $ cd -
-$ ./index_stage_2
+$ ./create_index
 ```

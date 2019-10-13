@@ -4,8 +4,8 @@
 // efficiently determine all indexed documents containing the aforementioned
 // term.
 
-#ifndef INVERTED_INDEX_HPP
-#define INVERTED_INDEX_HPP
+#ifndef TERM_POSTING_HPP
+#define TERM_POSTING_HPP
 
 #include <fstream>
 #include <memory>
@@ -19,13 +19,14 @@
 #include "log.hpp"
 #include "types.hpp"
 
-class InvertedIndex {
+class TermPosting {
   public:
-    void add(std::shared_ptr<Document> document);
-    std::vector<std::pair<doc_id, int>> search(term_id termID);
+    TermPosting(term_id termID, std::vector<std::pair<doc_id, int>> frequencies);
+    void write(std::string path, Lexicon lexicon);
+    void read_intermediate_postings(std::string path);
 
   private:
     std::map<term_id, std::vector<std::pair<doc_id, int>>> index;
 };
 
-#endif // INVERTED_INDEX_HPP
+#endif // TERM_POSTING_HPP

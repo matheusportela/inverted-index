@@ -1,0 +1,103 @@
+#include <iostream>
+#include <memory>
+
+#include "document.hpp"
+#include "document_table.hpp"
+#include "inverted_index.hpp"
+#include "lexicon.hpp"
+#include "parser.hpp"
+#include "types.hpp"
+
+void createIntermediatePostings(std::string inputPath, std::string outputPath, DocumentTable& documentTable, Lexicon& lexicon);
+void writeIntermediatePostings(std::string path, std::shared_ptr<Document> document);
+
+int main() {
+    LOG_SET_DEBUG();
+
+    DocumentTable documentTable;
+    Lexicon lexicon;
+
+    std::vector<std::string> paths = {
+        "../data/CC-MAIN-20190915052433-20190915074433-00000.warc.wet",
+        "../data/CC-MAIN-20190915052433-20190915074433-00001.warc.wet",
+    };
+
+    for (int i = 0; i < paths.size(); i++) {
+        auto input = paths[i];
+        auto output = "postings" + std::to_string(i) + ".txt";
+
+        // Erase output file if existing
+        std::ofstream fd(output, std::ofstream::out | std::ofstream::trunc);
+        fd.close();
+
+        createIntermediatePostings(input, output, documentTable, lexicon);
+    }
+
+    LOG_I("Document table size: " << documentTable.size());
+    LOG_I("Lexicon size: " << lexicon.size());
+
+    documentTable.write("document_table.txt");
+    lexicon.write("lexicon.txt");
+
+    return 0;
+}
+
+void createIntermediatePostings(std::string inputPath, std::string outputPath, DocumentTable& documentTable, Lexicon& lexicon) {
+    LOG_I("Creating intermediate postings for " + inputPath);
+
+    int numParsedDocuments = 0;
+    Parser parser(inputPath);
+
+    while (!parser.isEOF()) {
+        if (numParsedDocuments == 100)
+            break;
+
+        auto [url, frequencies] = parser.parseDocument();
+
+        // Ignore parsed documents without URL
+        if (url.empty())
+            continue;
+
+        // Convert term frequencies to use term IDs
+        std::vector<std::pair<term_id, int>> termIDFrequencies;
+        for (auto [termString, count] : frequencies) {
+            auto termID = lexicon.addOrGetTerm(termString);
+            termIDFrequencies.push_back(std::make_pair(termID, count));
+        }
+
+        auto document = std::make_shared<Document>(url, termIDFrequencies);
+
+        LOG_D("ID: " << document->getID() <<
+              " Size: " << document->getSize() <<
+              " URL: " << document->getURL());
+
+        // Update document table
+        documentTable.addDocument(document);
+
+        // Save postings to file
+        writeIntermediatePostings(outputPath, document);
+
+        numParsedDocuments++;
+    }
+
+    LOG_D("Finished processing " + inputPath);
+    LOG_D("Read " << numParsedDocuments << " documents");
+}
+
+void writeIntermediatePostings(std::string path, std::shared_ptr<Document> document) {
+    auto docID = document->getID();
+    auto frequencies = document->getFrequencies();
+
+    std::ofstream fd(path, std::ofstream::out | std::ofstream::app);
+
+    for (auto [termID, count] : frequencies) {
+        fd << std::setfill('0') << std::setw(9) << termID;
+        fd << ' ';
+        fd <<  std::setfill('0') << std::setw(9) << docID;
+        fd << ' ';
+        fd <<  std::setfill('0') << std::setw(9) << count;
+        fd << '\n';
+    }
+
+    fd.close();
+}

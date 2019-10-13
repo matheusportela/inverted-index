@@ -1,12 +1,12 @@
 #!/bin/bash
 
 cd build
-for filename in index*.txt; do
+for filename in postings*.txt; do
     echo "Sorting $filename"
     sort $filename > sorted-$filename
 done
 
-echo "Merging"
-sort -m sorted-index*.txt > merged-index.txt
+echo "Merging to merged-postings.txt"
+sort -m sorted-postings*.txt > merged-postings.txt
 
-rm sorted-index*.txt
+rm sorted-postings*.txt
