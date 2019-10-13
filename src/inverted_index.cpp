@@ -77,11 +77,10 @@ void InvertedIndex::flushInvertedList(Lexicon& lexicon) {
     int listStart = this->currentIndexOffset;
 
     uint32_t termID = this->currentTermID;
+    // this->output.write((char*)&termID, sizeof(termID));
+    // this->currentIndexOffset += sizeof(termID);
+
     uint32_t numDocs = this->currentDocIDs.size();
-
-    this->output.write((char*)&termID, sizeof(termID));
-    this->currentIndexOffset += sizeof(termID);
-
     this->output.write((char*)&numDocs, sizeof(numDocs));
     this->currentIndexOffset += sizeof(numDocs);
 
@@ -109,12 +108,12 @@ void InvertedIndex::flushInvertedList(Lexicon& lexicon) {
 std::vector<std::pair<doc_id, int>> InvertedIndex::getInvertedList(std::string path, int listStart) {
     std::ifstream fd(path, std::ofstream::in | std::ofstream::binary);
 
-    uint32_t termID;
-    uint32_t numDocs;
-
     fd.seekg(listStart);
 
-    fd.read((char*)&termID, sizeof(termID));
+    // uint32_t termID;
+    // fd.read((char*)&termID, sizeof(termID));
+
+    uint32_t numDocs;
     fd.read((char*)&numDocs, sizeof(numDocs));
 
     std::vector<doc_id> documents;

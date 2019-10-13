@@ -72,6 +72,9 @@ void createIntermediatePostings(std::string inputPath, std::string outputPath, D
     Parser parser(inputPath);
 
     while (!parser.isEOF()) {
+        // if (numParsedDocuments == 100)
+        //     break;
+
         auto [url, frequencies] = parser.parseDocument();
 
         // Ignore parsed documents without URL
