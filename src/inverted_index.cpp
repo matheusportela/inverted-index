@@ -1,20 +1,5 @@
 #include "inverted_index.hpp"
 
-void InvertedIndex::add(std::shared_ptr<Document> document) {
-    for (auto [termID, frequency] : document->getFrequencies()) {
-        auto documentID = document->getID();
-
-        if (this->index.count(termID) == 0)
-            index[termID] = std::vector<std::pair<doc_id, int>>();
-
-        index[termID].push_back(std::make_pair(documentID, frequency));
-    }
-}
-
-std::vector<std::pair<doc_id, int>> InvertedIndex::search(term_id termID) {
-    return this->index[termID];
-}
-
 void InvertedIndex::buildFromIntermediatePostings(std::string inputPath, std::string outputPath, Lexicon& lexicon) {
     this->input.open(inputPath);
     // this->output.open(outputPath, std::ofstream::out | std::ofstream::trunc);
@@ -121,7 +106,7 @@ void InvertedIndex::flushInvertedList(Lexicon& lexicon) {
     lexicon.addTermMetadata(term, termID, listStart, listEnd, numDocs);
 }
 
-std::vector<doc_id> InvertedIndex::getInvertedList(std::string path, int listStart) {
+std::vector<std::pair<doc_id, int>> InvertedIndex::getInvertedList(std::string path, int listStart) {
     std::ifstream fd(path, std::ofstream::in | std::ofstream::binary);
 
     uint32_t termID;
@@ -133,7 +118,6 @@ std::vector<doc_id> InvertedIndex::getInvertedList(std::string path, int listSta
     fd.read((char*)&numDocs, sizeof(numDocs));
 
     std::vector<doc_id> documents;
-
     uint32_t docID = 0;
     uint32_t compressedDocID;
 
@@ -144,7 +128,21 @@ std::vector<doc_id> InvertedIndex::getInvertedList(std::string path, int listSta
         documents.push_back(docID);
     }
 
+    std::vector<int> frequencies;
+    uint32_t frequency;
+
+    for (int i = 0; i < numDocs; i++) {
+        fd.read((char*)&frequency, sizeof(frequency));
+
+        frequencies.push_back(frequency);
+    }
+
     fd.close();
 
-    return documents;
+    std::vector<std::pair<doc_id, int>> result;
+
+    for (int i = 0; i < numDocs; i++)
+        result.push_back(std::make_pair(documents[i], frequencies[i]));
+
+    return result;
 }

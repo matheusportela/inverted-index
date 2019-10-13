@@ -19,13 +19,15 @@ int main() {
     Lexicon lexicon;
     InvertedIndex inverted_index;
 
-    LOG_D("Reading document table");
+    LOG_I("Initializing searcher");
+
+    LOG_I("Reading document table");
     document_table.read(documentTableInputPath);
 
-    LOG_D("Reading lexicon");
+    LOG_I("Reading lexicon");
     lexicon.read(lexiconInputPath);
 
-    LOG_I("Searching");
+    LOG_I("Initialized searcher");
 
     std::string term;
 
@@ -42,15 +44,18 @@ int main() {
         LOG_D("invertedListEnd: " << invertedListEnd);
         LOG_D("numDocs: " << numDocs);
 
-        if (numDocs == 0) {
-            std::cout << "not found" << std::endl;
+        std::cout << "number of documents: " << numDocs << std::endl;
+
+        if (numDocs == 0)
             continue;
-        }
 
-        auto documents = inverted_index.getInvertedList(indexInputPath, invertedListStart);
+        auto list = inverted_index.getInvertedList(indexInputPath, invertedListStart);
 
-        for (auto docID : documents)
-            std::cout << docID << " " << document_table.getDocumentURL(docID) << std::endl;
+        for (auto [docID, frequency] : list)
+            std::cout << docID << " " << frequency << " " << document_table.getDocumentURL(docID) << std::endl;
+
+        std::cout << std::endl;
+        std::cout << std::endl;
     }
 
     return 0;

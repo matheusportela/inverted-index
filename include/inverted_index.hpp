@@ -21,12 +21,9 @@
 
 class InvertedIndex {
   public:
-    void add(std::shared_ptr<Document> document);
-    std::vector<std::pair<doc_id, int>> search(term_id termID);
-
     void buildFromIntermediatePostings(std::string inputPath, std::string outputPath, Lexicon& lexicon);
 
-    std::vector<doc_id> getInvertedList(std::string path, int listStart);
+    std::vector<std::pair<doc_id, int>> getInvertedList(std::string path, int listStart);
 
   private:
     std::tuple<term_id, doc_id, int> readPosting();
