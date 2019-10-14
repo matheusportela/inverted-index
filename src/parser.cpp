@@ -130,7 +130,7 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
             } else {
                 // Push new term from buffer
                 term = ss.str();
-                if (!term.empty())
+                if (this->isValidTerm(term))
                     terms.push_back(term);
 
                 // Clear buffer
@@ -140,7 +140,7 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
 
         // Push new term from buffer whenever line has finished
         term = ss.str();
-        if (!term.empty())
+        if (this->isValidTerm(term))
             terms.push_back(term);
 
         // Clear buffer
@@ -152,6 +152,10 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
 
 bool Parser::isValidCharacter(char c) {
     return isalnum(c);
+}
+
+bool Parser::isValidTerm(std::string term) {
+    return !term.empty() && term.size() <= MAX_TERM_SIZE;
 }
 
 std::vector<std::pair<std::string, int>> Parser::calculateFrequencies(std::vector<std::string> terms) {

@@ -13,6 +13,8 @@
 
 #include "log.hpp"
 
+#define MAX_TERM_SIZE 40
+
 class Parser {
   public:
     // Initialize parser with path containing WET file
@@ -49,6 +51,8 @@ class Parser {
     std::vector<std::string> parseDocumentTerms(std::vector<std::string> content);
 
     bool isValidCharacter(char c);
+
+    bool isValidTerm(std::string term);
 
     std::vector<std::pair<std::string, int>> calculateFrequencies(std::vector<std::string> terms);
 

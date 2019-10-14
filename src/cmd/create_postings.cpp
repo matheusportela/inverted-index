@@ -113,12 +113,21 @@ void writeIntermediatePostings(std::string path, std::shared_ptr<Document> docum
 
     std::ofstream fd(path, std::ofstream::out | std::ofstream::app);
 
+    // for (auto [termID, count] : frequencies) {
+    //     fd << std::setfill('0') << std::setw(9) << termID;
+    //     fd << ' ';
+    //     fd <<  std::setfill('0') << std::setw(9) << docID;
+    //     fd << ' ';
+    //     fd <<  std::setfill('0') << std::setw(9) << count;
+    //     fd << '\n';
+    // }
+
     for (auto [termID, count] : frequencies) {
-        fd << std::setfill('0') << std::setw(9) << termID;
+        fd << termID;
         fd << ' ';
-        fd <<  std::setfill('0') << std::setw(9) << docID;
+        fd <<  docID;
         fd << ' ';
-        fd <<  std::setfill('0') << std::setw(9) << count;
+        fd <<  count;
         fd << '\n';
     }
 
