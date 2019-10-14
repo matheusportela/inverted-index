@@ -11,7 +11,7 @@ Didactic inverted index
 ## Compiling
 
 ```bash
-$ mkdir build && cd build && cmake .. && make
+$ ./compile
 ```
 
 ## Downloading data
@@ -19,13 +19,7 @@ $ mkdir build && cd build && cmake .. && make
 Download and uncompress 10 WET files containing crawling data:
 
 ```bash
-$ mkdir -p data/common-crawl
-$ cd data/
-$ wget https://commoncrawl.s3.amazonaws.com/crawl-data/CC-MAIN-2019-39/wet.paths.gz
-$ gzip -d wet.paths.gz
-$ head -n 10 wet.paths | xargs -I {} wget "https://commoncrawl.s3.amazonaws.com/{}"
-$ gzip -d CC-MAIN*.gz
-$ mv CC-MAIN*.wet common-crawl
+$ ./download
 ```
 
 ## Indexing data
@@ -33,7 +27,7 @@ $ mv CC-MAIN*.wet common-crawl
 Index all WET documents in `data/common-crawl`.
 
 ```bash
-$ ./create-inverted-index
+$ ./create_inverted_index
 ```
 
 ## Searching
