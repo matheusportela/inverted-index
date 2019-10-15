@@ -123,16 +123,23 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
     std::string term;
 
     for (auto line : lines) {
+        // LOG_D("Line: " << line);
         for (int i = 0; i < line.size(); i++) {
             if (this->isValidCharacter(line[i])) {
                 // Push char to buffer
                 // Convert char to lowercase
-                ss << (char)std::tolower(line[i]);
+                if ('A' <= line[i] && line[i] <= 'Z')
+                    ss << (char)(line[i] + 32);
+                else
+                    ss << line[i];
+
             } else {
                 // Push new term from buffer
                 term = ss.str();
-                if (this->isValidTerm(term))
+                if (this->isValidTerm(term)) {
+                    // LOG_D("Term: " << term);
                     terms.push_back(term);
+                }
 
                 // Clear buffer
                 ss.str(std::string());
@@ -152,11 +159,20 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
 }
 
 bool Parser::isValidCharacter(char c) {
-    return std::isalnum(c);
+    return ('0' <= c && c <= '9') || ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z');
 }
 
 bool Parser::isValidTerm(std::string term) {
-    return !term.empty() && term.size() <= MAX_TERM_SIZE;
+    return !term.empty() && term.size() <= MAX_TERM_SIZE && this->isTermNotOnlyDigits(term);
+}
+
+bool Parser::isTermNotOnlyDigits(std::string term) {
+    for (char c : term) {
+        if ('a' <= c && c <= 'z')
+            return true;
+    }
+
+    return false;
 }
 
 std::vector<std::pair<std::string, int>> Parser::calculateFrequencies(std::vector<std::string> terms) {

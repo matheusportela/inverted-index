@@ -54,6 +54,8 @@ class Parser {
 
     bool isValidTerm(std::string term);
 
+    bool isTermNotOnlyDigits(std::string term);
+
     std::vector<std::pair<std::string, int>> calculateFrequencies(std::vector<std::string> terms);
 
     // Document to parse
