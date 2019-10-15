@@ -1,7 +1,6 @@
 #include <cctype>
 #include <iostream>
 
-#include "document.hpp"
 #include "document_table.hpp"
 #include "inverted_index.hpp"
 #include "lexicon.hpp"

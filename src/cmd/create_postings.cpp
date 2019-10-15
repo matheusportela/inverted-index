@@ -3,15 +3,11 @@
 #include <memory>
 
 #include "document.hpp"
-#include "document_table.hpp"
-#include "inverted_index.hpp"
-#include "lexicon.hpp"
 #include "parser.hpp"
-#include "types.hpp"
 
 std::vector<std::string> getFilePaths(std::string directoryPath);
 std::string getPostingPath(std::string postingsPath, int postingNumber);
-void createIntermediatePostings(std::string inputPath, std::string outputPath, std::ofstream& documentTableFileStream, Lexicon& lexicon);
+void createIntermediatePostings(std::string inputPath, std::string outputPath, std::ofstream& documentTableFileStream);
 void writeIntermediatePostings(std::ofstream& fd, std::shared_ptr<Document> document);
 void writeDocumentTableEntry(std::ofstream& fd, std::shared_ptr<Document> document);
 
@@ -25,9 +21,6 @@ int main() {
 
     LOG_I("Creating intermediate postings");
 
-    DocumentTable documentTable;
-    Lexicon lexicon;
-
     std::vector<std::string> paths = getFilePaths(inputDir);
 
     // Erase document table file if existing
@@ -37,7 +30,7 @@ int main() {
         auto input = paths[i];
         auto output = getPostingPath(outputDir, i);
 
-        createIntermediatePostings(input, output, documentTableFileStream, lexicon);
+        createIntermediatePostings(input, output, documentTableFileStream);
     }
 
     documentTableFileStream.close();
@@ -60,7 +53,7 @@ std::string getPostingPath(std::string postingsPath, int postingNumber) {
     return postingsPath + "/postings-" + std::to_string(postingNumber) + ".txt";
 }
 
-void createIntermediatePostings(std::string inputPath, std::string outputPath, std::ofstream& documentTableFileStream, Lexicon& lexicon) {
+void createIntermediatePostings(std::string inputPath, std::string outputPath, std::ofstream& documentTableFileStream) {
     LOG_I("Creating intermediate postings for " + inputPath);
 
     // Erase output file if existing
@@ -70,8 +63,8 @@ void createIntermediatePostings(std::string inputPath, std::string outputPath, s
     Parser parser(inputPath);
 
     while (!parser.isEOF()) {
-        // if (numParsedDocuments == 100)
-        //     break;
+        if (numParsedDocuments == 100)
+            break;
 
         auto [url, frequencies] = parser.parseDocument();
 

@@ -8,21 +8,17 @@
 #define DOCUMENT_TABLE_HPP
 
 #include <fstream>
-#include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
 
-#include "document.hpp"
+#include "types.hpp"
 
 class DocumentTable {
   public:
     int size();
-    void addDocument(std::shared_ptr<Document> document);
     std::string getDocumentURL(doc_id documentID);
     int getDocumentSize(doc_id documentID);
-
-    void write(std::string path);
     void read(std::string path);
 
   private:
