@@ -9,7 +9,7 @@
 #define LEXICON_HPP
 
 #include <fstream>
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <tuple>
 
@@ -46,10 +46,12 @@ class Lexicon {
     static term_id nextAvailableID;
 
   private:
-    std::map<std::string, term_id> stringToIDMap;
-    std::map<term_id, std::string> idToStringMap;
+    // Used for intermediate lexicon
+    std::unordered_map<std::string, term_id> stringToIDMap;
+    std::unordered_map<term_id, std::string> idToStringMap;
 
-    std::map<std::string, std::tuple<term_id, int, int, int>> stringToMetadataMap;
+    // Used for final lexicon
+    std::unordered_map<std::string, std::tuple<term_id, int, int, int>> stringToMetadataMap;
 };
 
 #endif // LEXICON_HPP

@@ -126,7 +126,8 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
         for (int i = 0; i < line.size(); i++) {
             if (this->isValidCharacter(line[i])) {
                 // Push char to buffer
-                ss << line[i];
+                // Convert char to lowercase
+                ss << (char)std::tolower(line[i]);
             } else {
                 // Push new term from buffer
                 term = ss.str();
@@ -151,7 +152,7 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
 }
 
 bool Parser::isValidCharacter(char c) {
-    return isalnum(c);
+    return std::isalnum(c);
 }
 
 bool Parser::isValidTerm(std::string term) {
@@ -160,7 +161,7 @@ bool Parser::isValidTerm(std::string term) {
 
 std::vector<std::pair<std::string, int>> Parser::calculateFrequencies(std::vector<std::string> terms) {
     std::vector<std::pair<std::string, int>> frequencies;
-    std::map<std::string, int> wordCount;
+    std::unordered_map<std::string, int> wordCount;
 
     for (auto term : terms) {
         if (wordCount.count(term) == 0)

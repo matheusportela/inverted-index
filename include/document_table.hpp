@@ -8,10 +8,10 @@
 #define DOCUMENT_TABLE_HPP
 
 #include <fstream>
-#include <map>
 #include <memory>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include "document.hpp"
 

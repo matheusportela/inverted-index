@@ -16,7 +16,7 @@ term_id Lexicon::addTerm(std::string term) {
     nextAvailableID++;
 
     this->stringToIDMap[term] = termID;
-    this->idToStringMap[termID] = term;
+    // this->idToStringMap[termID] = term;
 
     return termID;
 }
@@ -47,7 +47,8 @@ void Lexicon::addTermMetadata(std::string term, term_id id, int invertedListStar
 void Lexicon::writeIntermediate(std::string path) {
     std::ofstream fd(path);
 
-    for (auto [termID, term] : this->idToStringMap) {
+    // for (auto [termID, term] : this->idToStringMap) {
+    for (auto [term, termID] : this->stringToIDMap) {
         fd << termID;
         fd << ' ';
         fd << term;
@@ -70,7 +71,7 @@ void Lexicon::readIntermediate(std::string path) {
         if (fd.eof())
             break;
 
-        this->stringToIDMap[term] = termID;
+        // this->stringToIDMap[term] = termID;
         this->idToStringMap[termID] = term;
 
         // LOG_D(term + " -> " + std::to_string(termID));
@@ -119,8 +120,8 @@ void Lexicon::read(std::string path) {
         if (fd.eof())
             break;
 
-        this->stringToIDMap[term] = termID;
-        this->idToStringMap[termID] = term;
+        // this->stringToIDMap[term] = termID;
+        // this->idToStringMap[termID] = term;
         this->stringToMetadataMap[term] = std::make_tuple(termID, invertedListStart, invertedListEnd, numDocs);
     }
 

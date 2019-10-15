@@ -8,7 +8,6 @@
 #ifndef DOCUMENT_HPP
 #define DOCUMENT_HPP
 
-#include <map>
 #include <utility>
 #include <string>
 #include <vector>

@@ -1,3 +1,4 @@
+#include <cctype>
 #include <iostream>
 
 #include "document.hpp"
@@ -34,6 +35,9 @@ int main() {
     while (true) {
         std::cout << "> ";
         std::cin >> term;
+
+        for (int i = 0; i < term.size(); i++)
+            term[i] = (char)std::tolower(term[i]);
 
         LOG_D("Searching for term '" << term << "'");
 

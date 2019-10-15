@@ -3,11 +3,11 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#include <ctype.h>
+#include <cctype>
 #include <fstream>
-#include <map>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 

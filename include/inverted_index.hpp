@@ -32,8 +32,6 @@ class InvertedIndex {
     void createInvertedList(term_id termID);
     void flushInvertedList(Lexicon& lexicon);
 
-    std::map<term_id, std::vector<std::pair<doc_id, int>>> index;
-
     std::ifstream input;
     std::ofstream output;
 
