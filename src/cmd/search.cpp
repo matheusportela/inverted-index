@@ -8,7 +8,6 @@
 #include "log.hpp"
 
 int main() {
-    // LOG_SET_DEBUG();
     LOG_SET_INFO();
 
     const std::string dir = "../tmp";
@@ -44,10 +43,8 @@ int main() {
 
         LOG_D("Searching for term '" << term << "'");
 
-        // auto [termID, invertedListStart, invertedListEnd, numDocs] = lexicon.getMetadata(term);
         auto [invertedListStart, invertedListEnd, numDocs] = lexicon.getMetadata(term);
 
-        // LOG_D("termID: " << termID);
         LOG_D("invertedListStart: " << invertedListStart);
         LOG_D("invertedListEnd: " << invertedListEnd);
         LOG_D("numDocs: " << numDocs);

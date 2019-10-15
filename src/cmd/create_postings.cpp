@@ -16,7 +16,6 @@ void writeIntermediatePostings(std::ofstream& fd, std::shared_ptr<Document> docu
 void writeDocumentTableEntry(std::ofstream& fd, std::shared_ptr<Document> document);
 
 int main() {
-    // LOG_SET_DEBUG();
     LOG_SET_INFO();
 
     const std::string inputDir = "../data/common-crawl";
@@ -42,12 +41,6 @@ int main() {
     }
 
     documentTableFileStream.close();
-
-    // LOG_I("Creating document table of size " << documentTable.size() << " at " << documentTablePath);
-    // LOG_I("Creating intermediate lexicon of size " << lexicon.size() << " at " << lexiconPath);
-
-    // documentTable.write(documentTablePath);
-    // lexicon.writeIntermediate(lexiconPath);
 
     LOG_I("Created intermediate postings");
 
@@ -86,22 +79,12 @@ void createIntermediatePostings(std::string inputPath, std::string outputPath, s
         if (url.empty())
             continue;
 
-        // // Convert term frequencies to use term IDs
-        // std::vector<std::pair<term_id, int>> termIDFrequencies;
-        // for (auto [termString, count] : frequencies) {
-        //     auto termID = lexicon.addOrGetTerm(termString);
-        //     termIDFrequencies.push_back(std::make_pair(termID, count));
-        // }
-
         // auto document = std::make_shared<Document>(url, termIDFrequencies);
         auto document = std::make_shared<Document>(url, frequencies);
 
         LOG_D("ID: " << document->getID() <<
               " Size: " << document->getSize() <<
               " URL: " << document->getURL());
-
-        // Update document table
-        // documentTable.addDocument(document);
 
         // Save postings to file
         writeIntermediatePostings(fd, document);
@@ -122,19 +105,6 @@ void writeIntermediatePostings(std::ofstream& fd, std::shared_ptr<Document> docu
     auto docID = document->getID();
     auto frequencies = document->getFrequencies();
 
-    // std::ofstream fd(path, std::ofstream::out | std::ofstream::app);
-
-    // for (auto [termID, count] : frequencies) {
-    //     fd << std::setfill('0') << std::setw(9) << termID;
-    //     fd << ' ';
-    //     fd <<  std::setfill('0') << std::setw(9) << docID;
-    //     fd << ' ';
-    //     fd <<  std::setfill('0') << std::setw(9) << count;
-    //     fd << '\n';
-    // }
-
-    // for (auto [termID, count] : frequencies) {
-    //     fd << termID;
     for (auto [term, count] : frequencies) {
         fd << term;
         fd << ' ';
@@ -143,32 +113,14 @@ void writeIntermediatePostings(std::ofstream& fd, std::shared_ptr<Document> docu
         fd <<  count;
         fd << '\n';
     }
-
-    // std::ofstream fd(path, std::ofstream::out | std::ofstream::app | std::ofstream::binary);
-
-    // for (auto [termID, count] : frequencies) {
-    //     uint32_t termIDValue = termID;
-    //     uint32_t docIDValue = docID;
-    //     uint32_t countValue = count;
-
-    //     fd.write((char*)&termIDValue, sizeof(termIDValue));
-    //     fd.write((char*)&docIDValue, sizeof(docIDValue));
-    //     fd.write((char*)&countValue, sizeof(countValue));
-    // }
-
-    // fd.close();
 }
 
 void writeDocumentTableEntry(std::ofstream& fd, std::shared_ptr<Document> document) {
     auto url = document->getURL();
     auto size = document->getSize();
 
-    // std::ofstream fd(path, std::ofstream::out | std::ofstream::app);
-
     fd << url;
     fd << ' ';
     fd << size;
     fd << '\n';
-
-    // fd.close();
 }

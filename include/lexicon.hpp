@@ -9,9 +9,9 @@
 #define LEXICON_HPP
 
 #include <fstream>
-#include <unordered_map>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 
 #include "log.hpp"
 #include "types.hpp"
@@ -34,8 +34,6 @@ class Lexicon {
     term_id getID(std::string term);
     std::string getTerm(term_id id);
 
-    // std::tuple<term_id, int, int, int> getMetadata(std::string term);
-    // void addTermMetadata(std::string term, term_id id, int invertedListStart, int invertedListEnd, int numDocs);
     std::tuple<int, int, int> getMetadata(std::string term);
     void addTermMetadata(std::string term, int invertedListStart, int invertedListEnd, int numDocs);
 
@@ -53,7 +51,6 @@ class Lexicon {
     std::unordered_map<term_id, std::string> idToStringMap;
 
     // Used for final lexicon
-    // std::unordered_map<std::string, std::tuple<term_id, int, int, int>> stringToMetadataMap;
     std::unordered_map<std::string, std::tuple<int, int, int>> stringToMetadataMap;
 };
 

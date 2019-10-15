@@ -3,7 +3,7 @@
 #include "log.hpp"
 
 int main() {
-    LOG_SET_DEBUG();
+    LOG_SET_INFO();
 
     const std::string dir = "../tmp";
     const std::string intermediateLexiconPath = dir + "/lexicon-intermediate.txt";
@@ -11,10 +11,7 @@ int main() {
     const std::string indexOutputPath = dir + "/index.txt";
     const std::string lexiconOutputPath = dir + "/lexicon.txt";
 
-    LOG_I("Reading intermediate lexicon");
-
     Lexicon lexicon;
-    // lexicon.readIntermediate(intermediateLexiconPath);
 
     LOG_I("Creating inverted index");
 

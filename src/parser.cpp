@@ -123,7 +123,6 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
     std::string term;
 
     for (auto line : lines) {
-        // LOG_D("Line: " << line);
         for (int i = 0; i < line.size(); i++) {
             if (this->isValidCharacter(line[i])) {
                 // Push char to buffer
@@ -136,10 +135,8 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
             } else {
                 // Push new term from buffer
                 term = ss.str();
-                if (this->isValidTerm(term)) {
-                    // LOG_D("Term: " << term);
+                if (this->isValidTerm(term))
                     terms.push_back(term);
-                }
 
                 // Clear buffer
                 ss.str(std::string());

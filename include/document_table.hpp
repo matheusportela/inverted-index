@@ -27,7 +27,6 @@ class DocumentTable {
 
   private:
     // Maps doc_id to (URL, page size)
-    // std::map<doc_id, std::tuple<std::string, int>> table;
     std::vector<std::tuple<std::string, int>> documents;
 };
 

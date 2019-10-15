@@ -2,7 +2,6 @@
 
 void InvertedIndex::buildFromIntermediatePostings(std::string inputPath, std::string outputPath, Lexicon& lexicon) {
     this->input.open(inputPath);
-    // this->output.open(outputPath, std::ofstream::out | std::ofstream::trunc);
     this->output.open(outputPath, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
 
     while (this->input.good()) {
@@ -22,7 +21,6 @@ void InvertedIndex::buildFromIntermediatePostings(std::string inputPath, std::st
     this->output.close();
 }
 
-// std::tuple<term_id, doc_id, int> InvertedIndex::readPosting() {
 std::tuple<std::string, doc_id, int> InvertedIndex::readPosting() {
     std::string term;
     doc_id docID;
@@ -35,11 +33,8 @@ std::tuple<std::string, doc_id, int> InvertedIndex::readPosting() {
     return std::make_tuple(term, docID, count);
 }
 
-// void InvertedIndex::processPosting(std::tuple<term_id, doc_id, int> posting, Lexicon& lexicon) {
 void InvertedIndex::processPosting(std::tuple<std::string, doc_id, int> posting, Lexicon& lexicon) {
     auto [term, docID, count] = posting;
-
-    // LOG_D("Posting: " + std::to_string(termID) + " " + std::to_string(docID) + " " + std::to_string(count));
 
     if (this->isFirstTerm) {
         this->createInvertedList(term);
@@ -59,32 +54,12 @@ bool InvertedIndex::isNewTerm(std::string term) {
 
 void InvertedIndex::createInvertedList(std::string term) {
     this->currentTerm = term;
-    // this->currentTerm.assign(term);
     this->currentDocIDs.clear();
     this->currentFrequencies.clear();
 }
 
 void InvertedIndex::flushInvertedList(Lexicon& lexicon) {
-    // this->output << "t: " << this->currentTermID;
-    // this->output << "\ts: ";
-    // this->output << this->currentDocIDs.size();
-    // this->output << "\td: ";
-
-    // for (auto docID : this->currentDocIDs)
-    //     this->output << docID << " ";
-
-    // this->output << "\tf: ";
-
-    // for (auto frequency : this->currentFrequencies)
-    //     this->output << frequency << " ";
-
-    // this->output << "\n";
-
     int listStart = this->currentIndexOffset;
-
-    // uint32_t termID = this->currentTermID;
-    // this->output.write((char*)&termID, sizeof(termID));
-    // this->currentIndexOffset += sizeof(termID);
 
     uint32_t numDocs = this->currentDocIDs.size();
     this->output.write((char*)&numDocs, sizeof(numDocs));
@@ -107,8 +82,6 @@ void InvertedIndex::flushInvertedList(Lexicon& lexicon) {
 
     int listEnd = this->currentIndexOffset;
 
-    // std::string term = lexicon.getTerm(termID);
-    // lexicon.addTermMetadata(term, termID, listStart, listEnd, numDocs);
     std::string term = this->currentTerm;
     lexicon.addTermMetadata(term, listStart, listEnd, numDocs);
 }
@@ -117,9 +90,6 @@ std::vector<std::pair<doc_id, int>> InvertedIndex::getInvertedList(std::string p
     std::ifstream fd(path, std::ofstream::in | std::ofstream::binary);
 
     fd.seekg(listStart);
-
-    // uint32_t termID;
-    // fd.read((char*)&termID, sizeof(termID));
 
     uint32_t numDocs;
     fd.read((char*)&numDocs, sizeof(numDocs));

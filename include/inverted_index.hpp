@@ -27,22 +27,16 @@ class InvertedIndex {
 
   private:
     std::tuple<std::string, doc_id, int> readPosting();
-    // std::tuple<term_id, doc_id, int> readPosting();
     void processPosting(std::tuple<std::string, doc_id, int> posting, Lexicon& lexicon);
-    // void processPosting(std::tuple<term_id, doc_id, int> posting, Lexicon& lexicon);
     bool isNewTerm(std::string termID);
-    // bool isNewTerm(term_id termID);
     void createInvertedList(std::string termID);
-    // void createInvertedList(term_id termID);
     void flushInvertedList(Lexicon& lexicon);
 
     std::ifstream input;
     std::ofstream output;
 
     bool isFirstTerm {true};
-
     std::string currentTerm;
-    // term_id currentTermID {0};
     std::vector<doc_id> currentDocIDs;
     std::vector<int> currentFrequencies;
 

@@ -16,7 +16,6 @@ term_id Lexicon::addTerm(std::string term) {
     nextAvailableID++;
 
     this->stringToIDMap[term] = termID;
-    // this->idToStringMap[termID] = term;
 
     return termID;
 }
@@ -47,7 +46,6 @@ void Lexicon::addTermMetadata(std::string term, int invertedListStart, int inver
 void Lexicon::writeIntermediate(std::string path) {
     std::ofstream fd(path);
 
-    // for (auto [termID, term] : this->idToStringMap) {
     for (auto [term, termID] : this->stringToIDMap) {
         fd << termID;
         fd << ' ';
@@ -71,10 +69,7 @@ void Lexicon::readIntermediate(std::string path) {
         if (fd.eof())
             break;
 
-        // this->stringToIDMap[term] = termID;
         this->idToStringMap[termID] = term;
-
-        // LOG_D(term + " -> " + std::to_string(termID));
     }
 
     fd.close();
@@ -84,19 +79,6 @@ void Lexicon::write(std::string path) {
     std::ofstream fd(path);
 
     for (auto [term, metadata] : this->stringToMetadataMap) {
-        // auto [termID, invertedListStart, invertedListEnd, numDocs] = metadata;
-
-        // fd << term;
-        // fd << ' ';
-        // fd << termID;
-        // fd << ' ';
-        // fd << invertedListStart;
-        // fd << ' ';
-        // fd << invertedListEnd;
-        // fd << ' ';
-        // fd << numDocs;
-        // fd << '\n';
-
         auto [invertedListStart, invertedListEnd, numDocs] = metadata;
 
         fd << term;
@@ -116,14 +98,12 @@ void Lexicon::read(std::string path) {
     std::ifstream fd(path);
 
     std::string term;
-    term_id termID;
     int invertedListStart;
     int invertedListEnd;
     int numDocs;
 
     while (fd.good()) {
         fd >> term;
-        // fd >> termID;
         fd >> invertedListStart;
         fd >> invertedListEnd;
         fd >> numDocs;
@@ -131,10 +111,6 @@ void Lexicon::read(std::string path) {
         if (fd.eof())
             break;
 
-        // this->stringToIDMap[term] = termID;
-        // this->idToStringMap[termID] = term;
-
-        // this->stringToMetadataMap[term] = std::make_tuple(termID, invertedListStart, invertedListEnd, numDocs);
         this->stringToMetadataMap[term] = std::make_tuple(invertedListStart, invertedListEnd, numDocs);
     }
 
