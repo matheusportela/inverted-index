@@ -138,5 +138,7 @@ void Lexicon::read(std::string path) {
         this->stringToMetadataMap[term] = std::make_tuple(invertedListStart, invertedListEnd, numDocs);
     }
 
+    LOG_D("Total entries in lexicon: " << this->stringToMetadataMap.size());
+
     fd.close();
 }

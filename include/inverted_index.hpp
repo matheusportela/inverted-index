@@ -39,6 +39,8 @@ class InvertedIndex {
     std::ifstream input;
     std::ofstream output;
 
+    bool isFirstTerm {true};
+
     std::string currentTerm;
     // term_id currentTermID {0};
     std::vector<doc_id> currentDocIDs;

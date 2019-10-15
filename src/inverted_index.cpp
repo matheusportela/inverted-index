@@ -41,7 +41,10 @@ void InvertedIndex::processPosting(std::tuple<std::string, doc_id, int> posting,
 
     // LOG_D("Posting: " + std::to_string(termID) + " " + std::to_string(docID) + " " + std::to_string(count));
 
-    if (this->isNewTerm(term)) {
+    if (this->isFirstTerm) {
+        this->createInvertedList(term);
+        this->isFirstTerm = false;
+    } else if (this->isNewTerm(term)) {
         this->flushInvertedList(lexicon);
         this->createInvertedList(term);
     }
@@ -55,8 +58,8 @@ bool InvertedIndex::isNewTerm(std::string term) {
 }
 
 void InvertedIndex::createInvertedList(std::string term) {
-    // this->currentTerm = term;
-    this->currentTerm.assign(term);
+    this->currentTerm = term;
+    // this->currentTerm.assign(term);
     this->currentDocIDs.clear();
     this->currentFrequencies.clear();
 }

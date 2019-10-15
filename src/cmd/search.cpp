@@ -36,8 +36,11 @@ int main() {
         std::cout << "> ";
         std::cin >> term;
 
-        for (int i = 0; i < term.size(); i++)
-            term[i] = (char)std::tolower(term[i]);
+        for (int i = 0; i < term.size(); i++) {
+            // Convert char to lowercase
+            if ('A' <= term[i] && term[i] <= 'Z')
+                term[i] = (char)(term[i] + 32);
+        }
 
         LOG_D("Searching for term '" << term << "'");
 
