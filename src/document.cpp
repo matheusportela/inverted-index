@@ -2,7 +2,8 @@
 
 doc_id Document::nextAvailableID = 0;
 
-Document::Document(std::string url, std::vector<std::pair<term_id, int>> frequencies) :
+// Document::Document(std::string url, std::vector<std::pair<term_id, int>> frequencies) :
+Document::Document(std::string url, std::vector<std::pair<std::string, int>> frequencies) :
     id(Document::nextAvailableID), url(url), frequencies(frequencies) {
     Document::nextAvailableID++;
 }
@@ -15,7 +16,8 @@ std::string Document::getURL() {
     return this->url;
 }
 
-std::vector<std::pair<term_id, int>> Document::getFrequencies() {
+// std::vector<std::pair<term_id, int>> Document::getFrequencies() {
+std::vector<std::pair<std::string, int>> Document::getFrequencies() {
     return this->frequencies;
 }
 

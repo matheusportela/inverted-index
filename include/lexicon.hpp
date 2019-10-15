@@ -34,8 +34,10 @@ class Lexicon {
     term_id getID(std::string term);
     std::string getTerm(term_id id);
 
-    std::tuple<term_id, int, int, int> getMetadata(std::string term);
-    void addTermMetadata(std::string term, term_id id, int invertedListStart, int invertedListEnd, int numDocs);
+    // std::tuple<term_id, int, int, int> getMetadata(std::string term);
+    // void addTermMetadata(std::string term, term_id id, int invertedListStart, int invertedListEnd, int numDocs);
+    std::tuple<int, int, int> getMetadata(std::string term);
+    void addTermMetadata(std::string term, int invertedListStart, int invertedListEnd, int numDocs);
 
     void writeIntermediate(std::string path);
     void readIntermediate(std::string path);
@@ -51,7 +53,8 @@ class Lexicon {
     std::unordered_map<term_id, std::string> idToStringMap;
 
     // Used for final lexicon
-    std::unordered_map<std::string, std::tuple<term_id, int, int, int>> stringToMetadataMap;
+    // std::unordered_map<std::string, std::tuple<term_id, int, int, int>> stringToMetadataMap;
+    std::unordered_map<std::string, std::tuple<int, int, int>> stringToMetadataMap;
 };
 
 #endif // LEXICON_HPP

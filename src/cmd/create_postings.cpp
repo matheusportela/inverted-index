@@ -11,8 +11,9 @@
 
 std::vector<std::string> getFilePaths(std::string directoryPath);
 std::string getPostingPath(std::string postingsPath, int postingNumber);
-void createIntermediatePostings(std::string inputPath, std::string outputPath, DocumentTable& documentTable, Lexicon& lexicon);
-void writeIntermediatePostings(std::string path, std::shared_ptr<Document> document);
+void createIntermediatePostings(std::string inputPath, std::string outputPath, std::ofstream& documentTableFileStream, Lexicon& lexicon);
+void writeIntermediatePostings(std::ofstream& fd, std::shared_ptr<Document> document);
+void writeDocumentTableEntry(std::ofstream& fd, std::shared_ptr<Document> document);
 
 int main() {
     // LOG_SET_DEBUG();
@@ -23,31 +24,32 @@ int main() {
     const std::string documentTablePath = outputDir + "/document-table.txt";
     const std::string lexiconPath = outputDir + "/lexicon-intermediate.txt";
 
-    LOG_I("Creating intermediate structures");
+    LOG_I("Creating intermediate postings");
 
     DocumentTable documentTable;
     Lexicon lexicon;
 
     std::vector<std::string> paths = getFilePaths(inputDir);
 
+    // Erase document table file if existing
+    std::ofstream documentTableFileStream(documentTablePath, std::ofstream::out | std::ofstream::trunc);
+
     for (int i = 0; i < paths.size(); i++) {
         auto input = paths[i];
         auto output = getPostingPath(outputDir, i);
 
-        // Erase output file if existing
-        std::ofstream fd(output, std::ofstream::out | std::ofstream::trunc);
-        fd.close();
-
-        createIntermediatePostings(input, output, documentTable, lexicon);
+        createIntermediatePostings(input, output, documentTableFileStream, lexicon);
     }
 
-    LOG_I("Creating document table of size " << documentTable.size() << " at " << documentTablePath);
-    LOG_I("Creating intermediate lexicon of size " << lexicon.size() << " at " << lexiconPath);
+    documentTableFileStream.close();
 
-    documentTable.write(documentTablePath);
-    lexicon.writeIntermediate(lexiconPath);
+    // LOG_I("Creating document table of size " << documentTable.size() << " at " << documentTablePath);
+    // LOG_I("Creating intermediate lexicon of size " << lexicon.size() << " at " << lexiconPath);
 
-    LOG_I("Created intermediate structures");
+    // documentTable.write(documentTablePath);
+    // lexicon.writeIntermediate(lexiconPath);
+
+    LOG_I("Created intermediate postings");
 
     return 0;
 }
@@ -65,8 +67,11 @@ std::string getPostingPath(std::string postingsPath, int postingNumber) {
     return postingsPath + "/postings-" + std::to_string(postingNumber) + ".txt";
 }
 
-void createIntermediatePostings(std::string inputPath, std::string outputPath, DocumentTable& documentTable, Lexicon& lexicon) {
+void createIntermediatePostings(std::string inputPath, std::string outputPath, std::ofstream& documentTableFileStream, Lexicon& lexicon) {
     LOG_I("Creating intermediate postings for " + inputPath);
+
+    // Erase output file if existing
+    std::ofstream fd(outputPath, std::ofstream::out | std::ofstream::trunc);
 
     int numParsedDocuments = 0;
     Parser parser(inputPath);
@@ -81,37 +86,43 @@ void createIntermediatePostings(std::string inputPath, std::string outputPath, D
         if (url.empty())
             continue;
 
-        // Convert term frequencies to use term IDs
-        std::vector<std::pair<term_id, int>> termIDFrequencies;
-        for (auto [termString, count] : frequencies) {
-            auto termID = lexicon.addOrGetTerm(termString);
-            termIDFrequencies.push_back(std::make_pair(termID, count));
-        }
+        // // Convert term frequencies to use term IDs
+        // std::vector<std::pair<term_id, int>> termIDFrequencies;
+        // for (auto [termString, count] : frequencies) {
+        //     auto termID = lexicon.addOrGetTerm(termString);
+        //     termIDFrequencies.push_back(std::make_pair(termID, count));
+        // }
 
-        auto document = std::make_shared<Document>(url, termIDFrequencies);
+        // auto document = std::make_shared<Document>(url, termIDFrequencies);
+        auto document = std::make_shared<Document>(url, frequencies);
 
         LOG_D("ID: " << document->getID() <<
               " Size: " << document->getSize() <<
               " URL: " << document->getURL());
 
         // Update document table
-        documentTable.addDocument(document);
+        // documentTable.addDocument(document);
 
         // Save postings to file
-        writeIntermediatePostings(outputPath, document);
+        writeIntermediatePostings(fd, document);
+
+        // Save document metadata to document table file
+        writeDocumentTableEntry(documentTableFileStream, document);
 
         numParsedDocuments++;
     }
+
+    fd.close();
 
     LOG_D("Processed " + inputPath);
     LOG_D("Read " << numParsedDocuments << " documents");
 }
 
-void writeIntermediatePostings(std::string path, std::shared_ptr<Document> document) {
+void writeIntermediatePostings(std::ofstream& fd, std::shared_ptr<Document> document) {
     auto docID = document->getID();
     auto frequencies = document->getFrequencies();
 
-    std::ofstream fd(path, std::ofstream::out | std::ofstream::app);
+    // std::ofstream fd(path, std::ofstream::out | std::ofstream::app);
 
     // for (auto [termID, count] : frequencies) {
     //     fd << std::setfill('0') << std::setw(9) << termID;
@@ -122,8 +133,10 @@ void writeIntermediatePostings(std::string path, std::shared_ptr<Document> docum
     //     fd << '\n';
     // }
 
-    for (auto [termID, count] : frequencies) {
-        fd << termID;
+    // for (auto [termID, count] : frequencies) {
+    //     fd << termID;
+    for (auto [term, count] : frequencies) {
+        fd << term;
         fd << ' ';
         fd <<  docID;
         fd << ' ';
@@ -143,5 +156,19 @@ void writeIntermediatePostings(std::string path, std::shared_ptr<Document> docum
     //     fd.write((char*)&countValue, sizeof(countValue));
     // }
 
-    fd.close();
+    // fd.close();
+}
+
+void writeDocumentTableEntry(std::ofstream& fd, std::shared_ptr<Document> document) {
+    auto url = document->getURL();
+    auto size = document->getSize();
+
+    // std::ofstream fd(path, std::ofstream::out | std::ofstream::app);
+
+    fd << url;
+    fd << ' ';
+    fd << size;
+    fd << '\n';
+
+    // fd.close();
 }

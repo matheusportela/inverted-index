@@ -22,38 +22,41 @@ void InvertedIndex::buildFromIntermediatePostings(std::string inputPath, std::st
     this->output.close();
 }
 
-std::tuple<term_id, doc_id, int> InvertedIndex::readPosting() {
-    term_id termID;
+// std::tuple<term_id, doc_id, int> InvertedIndex::readPosting() {
+std::tuple<std::string, doc_id, int> InvertedIndex::readPosting() {
+    std::string term;
     doc_id docID;
     int count;
 
-    this->input >> termID;
+    this->input >> term;
     this->input >> docID;
     this->input >> count;
 
-    return std::make_tuple(termID, docID, count);
+    return std::make_tuple(term, docID, count);
 }
 
-void InvertedIndex::processPosting(std::tuple<term_id, doc_id, int> posting, Lexicon& lexicon) {
-    auto [termID, docID, count] = posting;
+// void InvertedIndex::processPosting(std::tuple<term_id, doc_id, int> posting, Lexicon& lexicon) {
+void InvertedIndex::processPosting(std::tuple<std::string, doc_id, int> posting, Lexicon& lexicon) {
+    auto [term, docID, count] = posting;
 
     // LOG_D("Posting: " + std::to_string(termID) + " " + std::to_string(docID) + " " + std::to_string(count));
 
-    if (this->isNewTerm(termID)) {
+    if (this->isNewTerm(term)) {
         this->flushInvertedList(lexicon);
-        this->createInvertedList(termID);
+        this->createInvertedList(term);
     }
 
     this->currentDocIDs.push_back(docID);
     this->currentFrequencies.push_back(count);
 }
 
-bool InvertedIndex::isNewTerm(term_id termID) {
-    return termID != this->currentTermID;
+bool InvertedIndex::isNewTerm(std::string term) {
+    return term != this->currentTerm;
 }
 
-void InvertedIndex::createInvertedList(term_id termID) {
-    this->currentTermID = termID;
+void InvertedIndex::createInvertedList(std::string term) {
+    // this->currentTerm = term;
+    this->currentTerm.assign(term);
     this->currentDocIDs.clear();
     this->currentFrequencies.clear();
 }
@@ -76,7 +79,7 @@ void InvertedIndex::flushInvertedList(Lexicon& lexicon) {
 
     int listStart = this->currentIndexOffset;
 
-    uint32_t termID = this->currentTermID;
+    // uint32_t termID = this->currentTermID;
     // this->output.write((char*)&termID, sizeof(termID));
     // this->currentIndexOffset += sizeof(termID);
 
@@ -101,8 +104,10 @@ void InvertedIndex::flushInvertedList(Lexicon& lexicon) {
 
     int listEnd = this->currentIndexOffset;
 
-    std::string term = lexicon.getTerm(termID);
-    lexicon.addTermMetadata(term, termID, listStart, listEnd, numDocs);
+    // std::string term = lexicon.getTerm(termID);
+    // lexicon.addTermMetadata(term, termID, listStart, listEnd, numDocs);
+    std::string term = this->currentTerm;
+    lexicon.addTermMetadata(term, listStart, listEnd, numDocs);
 }
 
 std::vector<std::pair<doc_id, int>> InvertedIndex::getInvertedList(std::string path, int listStart) {

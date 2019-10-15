@@ -14,7 +14,7 @@ int main() {
     LOG_I("Reading intermediate lexicon");
 
     Lexicon lexicon;
-    lexicon.readIntermediate(intermediateLexiconPath);
+    // lexicon.readIntermediate(intermediateLexiconPath);
 
     LOG_I("Creating inverted index");
 

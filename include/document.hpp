@@ -16,11 +16,13 @@
 
 class Document {
   public:
-    Document(std::string url, std::vector<std::pair<term_id, int>> frequencies);
+    Document(std::string url, std::vector<std::pair<std::string, int>> frequencies);
+    // Document(std::string url, std::vector<std::pair<term_id, int>> frequencies);
 
     doc_id getID();
     std::string getURL();
-    std::vector<std::pair<term_id, int>> getFrequencies();
+    std::vector<std::pair<std::string, int>> getFrequencies();
+    // std::vector<std::pair<term_id, int>> getFrequencies();
     int getSize();
 
     static doc_id nextAvailableID;
@@ -28,7 +30,8 @@ class Document {
   private:
     const doc_id id;
     const std::string url;
-    const std::vector<std::pair<term_id, int>> frequencies;
+    const std::vector<std::pair<std::string, int>> frequencies;
+    // const std::vector<std::pair<term_id, int>> frequencies;
 };
 
 #endif // DOCUMENT_HPP
