@@ -7,7 +7,7 @@ cd build
 ./parse
 
 cd ..
-./merge_postings
+./merge
 
 cd build
-./create_index
+./index

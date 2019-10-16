@@ -17,5 +17,5 @@ file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 # Create executable files
 add_executable(parse "${CMAKE_CURRENT_SOURCE_DIR}/src/cmd/parse.cpp" ${SOURCES})
-add_executable(create_index "${CMAKE_CURRENT_SOURCE_DIR}/src/cmd/create_index.cpp" ${SOURCES})
+add_executable(index "${CMAKE_CURRENT_SOURCE_DIR}/src/cmd/index.cpp" ${SOURCES})
 add_executable(search "${CMAKE_CURRENT_SOURCE_DIR}/src/cmd/search.cpp" ${SOURCES})
