@@ -1,6 +1,8 @@
 #include "document_parser.hpp"
 
-DocumentParser::DocumentParser(std::string documentTablePath) {
+DocumentParser::DocumentParser(std::string inputDir, std::string outputDir) : inputDir(inputDir), outputDir(outputDir) {
+    const std::string documentTablePath = outputDir + "/document-table.txt";
+
     // Erase document table file if it already exists
     this->documentTableFileStream.open(documentTablePath, std::ofstream::out | std::ofstream::trunc);
 }
@@ -9,15 +11,38 @@ DocumentParser::~DocumentParser() {
     this->documentTableFileStream.close();
 }
 
-void DocumentParser::parseWETFile(std::string inputPath, std::string outputPath) {
-    LOG_I("Parsing documents from " + inputPath);
+void DocumentParser::parseFiles() {
+    std::vector<std::string> paths = this->getFilePaths(this->inputDir);
+
+    for (int i = 0; i < paths.size(); i++) {
+        auto input = paths[i];
+        auto output = this->generatePostingPath(this->outputDir, i);
+        this->parseWETFile(input, output);
+    }
+}
+
+std::vector<std::string> DocumentParser::getFilePaths(std::string directoryPath) {
+    std::vector<std::string> paths;
+
+    for (auto entry : std::filesystem::directory_iterator(directoryPath))
+        paths.push_back(entry.path());
+
+    return paths;
+}
+
+std::string DocumentParser::generatePostingPath(std::string outputDir, int postingNumber) {
+    return outputDir + "/postings-" + std::to_string(postingNumber) + ".txt";
+}
+
+void DocumentParser::parseWETFile(std::string wetFilePath, std::string postingFilePath) {
+    LOG_I("Parsing documents from " + wetFilePath);
 
     // Erase postings file if it already exists
-    std::ofstream postingsFileStream(outputPath, std::ofstream::out | std::ofstream::trunc);
+    std::ofstream postingsFileStream(postingFilePath, std::ofstream::out | std::ofstream::trunc);
 
     int numParsedDocuments = 0;
 
-    WETParser parser(inputPath);
+    WETParser parser(wetFilePath);
 
     while (!parser.isEOF()) {
         // if (numParsedDocuments == 100)
@@ -45,7 +70,7 @@ void DocumentParser::parseWETFile(std::string inputPath, std::string outputPath)
 
     postingsFileStream.close();
 
-    LOG_D("Parsed " + inputPath);
+    LOG_D("Parsed " + wetFilePath);
     LOG_D("Processed " << numParsedDocuments << " documents");
 }
 

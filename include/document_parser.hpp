@@ -48,6 +48,7 @@
 #ifndef DOCUMENT_PARSER_HPP
 #define DOCUMENT_PARSER_HPP
 
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <utility>
@@ -59,19 +60,31 @@
 
 class DocumentParser {
   public:
-    // @param documentTablePath - Document table file path to be written
-    DocumentParser(std::string documentTablePath);
-
+    // @param inputDir - Directory containing only WET files
+    // @param outputDir - Directory to write postings and document table files
+    DocumentParser(std::string inputDir, std::string outputDir);
     ~DocumentParser();
 
-    // Parse WET file, writing to postings and document table files
-    // @param inputPath - WET file path to be read
-    // @param outputPath - Postings file path to be written
-    // @result Write postings to `outputPath` and document table entries to
-    //         `documentTablePath`
-    void parseWETFile(std::string inputPath, std::string outputPath);
+    // Parse WET files from input directory and writing postings and document table files to output directory
+    void parseFiles();
 
   private:
+    // Get WET file paths from directory
+    // @param directoryPath - Directory containing only WET files
+    // @return Vector containing file paths as string
+    std::vector<std::string> getFilePaths(std::string directoryPath);
+
+    // Generate postings file output path
+    // @param outputDir - Directory to write postings file
+    // @param postingNumber - Unique number identifying current posting file
+    // @return File path as string
+    std::string generatePostingPath(std::string outputDir, int postingNumber);
+
+    // Parse WET file, writing to postings and document table files
+    // @param wetFilePath - WET file path to be read
+    // @param postingFilePath - Postings file path to be written
+    void parseWETFile(std::string wetFilePath, std::string postingFilePath);
+
     // Append posting entries to postings file
     // @param fd - Posting file descriptor
     // @param docID - Uniquely generated document ID
@@ -95,6 +108,8 @@ class DocumentParser {
     // @return Unique document ID
     doc_id generateDocumentID();
 
+    const std::string inputDir;
+    const std::string outputDir;
     std::ofstream documentTableFileStream;
     doc_id nextAvailableDocumentID {0};
 };

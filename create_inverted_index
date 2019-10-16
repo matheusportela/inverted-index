@@ -4,7 +4,7 @@ rm -rf tmp
 mkdir tmp
 
 cd build
-./create_postings
+./parse
 
 cd ..
 ./merge_postings
