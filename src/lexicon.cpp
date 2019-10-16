@@ -8,7 +8,7 @@ void Lexicon::addTermMetadata(std::string term, int invertedListStart, int inver
     this->stringToMetadataMap[term] = std::make_tuple(invertedListStart, invertedListEnd, numDocs);
 }
 
-void Lexicon::write(std::string path) {
+void Lexicon::save(std::string path) {
     std::ofstream fd(path);
 
     for (auto [term, metadata] : this->stringToMetadataMap) {
@@ -27,7 +27,7 @@ void Lexicon::write(std::string path) {
     fd.close();
 }
 
-void Lexicon::read(std::string path) {
+void Lexicon::load(std::string path) {
     std::ifstream fd(path);
 
     std::string term;

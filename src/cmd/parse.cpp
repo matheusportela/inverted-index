@@ -16,7 +16,7 @@ int main() {
     LOG_I("Parsing WET files");
 
     DocumentParser documentParser(inputDir, outputDir);
-    documentParser.parseFiles();
+    documentParser.parse();
 
     LOG_I("Parsed WET files");
 

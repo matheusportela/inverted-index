@@ -11,7 +11,7 @@ DocumentParser::~DocumentParser() {
     this->documentTableFileStream.close();
 }
 
-void DocumentParser::parseFiles() {
+void DocumentParser::parse() {
     std::vector<std::string> paths = this->getFilePaths(this->inputDir);
 
     for (int i = 0; i < paths.size(); i++) {

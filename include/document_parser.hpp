@@ -66,7 +66,7 @@ class DocumentParser {
     ~DocumentParser();
 
     // Parse WET files from input directory and writing postings and document table files to output directory
-    void parseFiles();
+    void parse();
 
   private:
     // Get WET file paths from directory

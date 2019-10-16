@@ -16,12 +16,17 @@
 
 class DocumentTable {
   public:
+    DocumentTable(std::string path);
+
     int size();
     std::string getDocumentURL(doc_id documentID);
     int getDocumentSize(doc_id documentID);
-    void read(std::string path);
+
+    void load();
 
   private:
+    std::string documentTableFilePath;
+
     // Maps doc_id to (URL, page size)
     std::vector<std::tuple<std::string, int>> documents;
 };

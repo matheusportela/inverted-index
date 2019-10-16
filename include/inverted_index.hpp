@@ -24,7 +24,9 @@ class InvertedIndex {
 
     void index();
 
-    std::vector<std::pair<doc_id, int>> getInvertedList(std::string path, int listStart);
+    void load();
+
+    std::vector<std::pair<doc_id, int>> search(std::string term);
 
   private:
     std::tuple<std::string, doc_id, int> readPosting();
@@ -37,9 +39,7 @@ class InvertedIndex {
     void writeFrequencies();
     void write(char* addr, unsigned int size);
 
-    void readNumberOfDocs();
-    void readDocumentIDs();
-    void readFrequencies();
+    std::vector<std::pair<doc_id, int>> fetchInvertedList(int listStart);
 
     std::ifstream postingsFileStream;
     std::ofstream indexFileStream;

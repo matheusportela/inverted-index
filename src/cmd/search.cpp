@@ -10,21 +10,16 @@ int main() {
     LOG_SET_INFO();
 
     const std::string path = "../tmp";
-    const std::string documentTableInputPath = path + "/document-table.txt";
-    const std::string lexiconInputPath = path + "/lexicon.txt";
-    const std::string indexInputPath = path + "/index.txt";
-
-    DocumentTable document_table;
-    Lexicon lexicon;
-    InvertedIndex inverted_index(path);
 
     LOG_I("Initializing searcher");
 
-    LOG_I("Reading document table");
-    document_table.read(documentTableInputPath);
+    LOG_I("Loading document table");
+    DocumentTable document_table(path);
+    document_table.load();
 
-    LOG_I("Reading lexicon");
-    lexicon.read(lexiconInputPath);
+    LOG_I("Loading inverted index lexicon");
+    InvertedIndex inverted_index(path);
+    inverted_index.load();
 
     LOG_I("Initialized searcher");
 
@@ -34,31 +29,23 @@ int main() {
         std::cout << "> ";
         std::cin >> term;
 
+        // Convert term to lowercase
         for (int i = 0; i < term.size(); i++) {
-            // Convert char to lowercase
             if ('A' <= term[i] && term[i] <= 'Z')
                 term[i] = (char)(term[i] + 32);
         }
 
         LOG_D("Searching for term '" << term << "'");
 
-        auto [invertedListStart, invertedListEnd, numDocs] = lexicon.getMetadata(term);
+        auto list = inverted_index.search(term);
+        std::cout << "number of documents: " << list.size() << std::endl;
 
-        LOG_D("invertedListStart: " << invertedListStart);
-        LOG_D("invertedListEnd: " << invertedListEnd);
-        LOG_D("numDocs: " << numDocs);
-
-        std::cout << "number of documents: " << numDocs << std::endl;
-
-        if (numDocs == 0)
+        if (list.size() == 0)
             continue;
-
-        auto list = inverted_index.getInvertedList(indexInputPath, invertedListStart);
 
         for (auto [docID, frequency] : list)
             std::cout << docID << " " << frequency << " " << document_table.getDocumentURL(docID) << std::endl;
 
-        std::cout << std::endl;
         std::cout << std::endl;
     }
 

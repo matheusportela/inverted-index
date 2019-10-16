@@ -1,5 +1,9 @@
 #include "document_table.hpp"
 
+DocumentTable::DocumentTable(std::string path) {
+    this->documentTableFilePath = path + "/document-table.txt";
+}
+
 int DocumentTable::size() {
     return this->documents.size();
 }
@@ -12,8 +16,8 @@ int DocumentTable::getDocumentSize(doc_id documentID) {
     return std::get<1>(this->documents[documentID]);
 }
 
-void DocumentTable::read(std::string path) {
-    std::ifstream fd(path);
+void DocumentTable::load() {
+    std::ifstream fd(this->documentTableFilePath);
 
     std::string url;
     int size;

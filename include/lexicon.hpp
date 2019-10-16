@@ -23,8 +23,9 @@ class Lexicon {
     std::tuple<int, int, int> getMetadata(std::string term);
     void addTermMetadata(std::string term, int invertedListStart, int invertedListEnd, int numDocs);
 
-    void write(std::string path);
-    void read(std::string path);
+    void save(std::string path);
+
+    void load(std::string path);
 
   private:
     std::unordered_map<std::string, std::tuple<int, int, int>> stringToMetadataMap;

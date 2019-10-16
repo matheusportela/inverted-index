@@ -30,8 +30,8 @@ void InvertedIndex::index() {
     this->postingsFileStream.close();
     this->indexFileStream.close();
 
-    // Write lexicon after indexing postings
-    this->lexicon.write(lexiconPath);
+    // Save lexicon after indexing postings
+    this->lexicon.save(lexiconPath);
 }
 
 std::tuple<std::string, doc_id, int> InvertedIndex::readPosting() {
@@ -118,8 +118,23 @@ void InvertedIndex::write(char* addr, unsigned int size) {
     this->currentIndexOffset += size;
 }
 
-std::vector<std::pair<doc_id, int>> InvertedIndex::getInvertedList(std::string path, int listStart) {
-    std::ifstream fd(path, std::ofstream::in | std::ofstream::binary);
+void InvertedIndex::load() {
+    this->lexicon.load(this->lexiconPath);
+}
+
+std::vector<std::pair<doc_id, int>> InvertedIndex::search(std::string term) {
+    auto [invertedListStart, invertedListEnd, numDocs] = this->lexicon.getMetadata(term);
+
+    std::vector<std::pair<doc_id, int>> result;
+
+    if (numDocs > 0)
+        result = this->fetchInvertedList(invertedListStart);
+
+    return result;
+}
+
+std::vector<std::pair<doc_id, int>> InvertedIndex::fetchInvertedList(int listStart) {
+    std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
 
     // Go to inverted list start
     fd.seekg(listStart);
