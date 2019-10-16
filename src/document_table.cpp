@@ -1,7 +1,7 @@
 #include "document_table.hpp"
 
-DocumentTable::DocumentTable(std::string path) {
-    this->documentTableFilePath = path + "/document-table.txt";
+DocumentTable::DocumentTable(std::string dir) {
+    this->documentTableFilePath = dir + "/document-table.txt";
 }
 
 int DocumentTable::size() {
@@ -23,6 +23,7 @@ void DocumentTable::load() {
     int size;
 
     this->documents.clear();
+
     while (fd.good()) {
         fd >> url;
         fd >> size;

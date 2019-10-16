@@ -1,9 +1,11 @@
-// Custom types
+/**
+    Custom data types
+*/
 
 #ifndef TYPES_HPP
 #define TYPES_HPP
 
+// Document ID
 typedef int doc_id;
-typedef int term_id;
 
 #endif // TYPES_HPP

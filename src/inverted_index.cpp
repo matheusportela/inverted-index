@@ -1,18 +1,27 @@
 #include "inverted_index.hpp"
 
-InvertedIndex::InvertedIndex(std::string path) {
-    this->postingsPath = path + "/merged-postings.txt";
-    this->indexPath = path + "/index.txt";
-    this->lexiconPath = path + "/lexicon.txt";
+InvertedIndex::InvertedIndex(std::string dir) {
+    this->postingsPath = dir + "/merged-postings.txt";
+    this->indexPath = dir + "/index.txt";
+    this->lexiconPath = dir + "/lexicon.txt";
 }
 
 void InvertedIndex::index() {
-    // Open file containing all postings to index
-    this->postingsFileStream.open(this->postingsPath);
-
     // Open file to write index in binary format
     // Erase index file if it already exists
     this->indexFileStream.open(this->indexPath, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+
+    this->indexPostings();
+
+    this->indexFileStream.close();
+
+    // Save lexicon after indexing postings
+    this->lexicon.save(lexiconPath);
+}
+
+void InvertedIndex::indexPostings() {
+    // Open file containing all postings to index
+    this->postingsFileStream.open(this->postingsPath);
 
     while (this->postingsFileStream.good()) {
         auto posting = this->readPosting();
@@ -28,10 +37,6 @@ void InvertedIndex::index() {
     this->flushInvertedList();
 
     this->postingsFileStream.close();
-    this->indexFileStream.close();
-
-    // Save lexicon after indexing postings
-    this->lexicon.save(lexiconPath);
 }
 
 std::tuple<std::string, doc_id, int> InvertedIndex::readPosting() {
