@@ -1,18 +1,16 @@
 #!/bin/bash
 
-echo "Merging intermediate postings"
+echo "$(date) - Merging intermediate postings"
 
 cd tmp
 for filename in postings-*.txt; do
-    echo "Sorting $filename"
-    # sort -t ' ' -k 1n -k 2n $filename > sorted-$filename
+    echo "$(date) - Sorting $filename"
     sort -t ' ' -k 1,1 -k 2,2n $filename > sorted-$filename
 done
 
-echo "Merging to merged-postings.txt"
-# sort -t ' ' -k 1n -k 2n -m sorted-postings-*.txt > merged-postings.txt
+echo "$(date) - Merging to merged-postings.txt"
 sort -t ' ' -k 1,1 -k 2,2n -m sorted-postings-*.txt > merged-postings.txt
 
 rm sorted-postings-*.txt
 
-echo "Merged intermediate postings"
+echo "$(date) - Merged intermediate postings"
