@@ -27,7 +27,7 @@ $ ./download
 Index all WET documents in `data/common-crawl`.
 
 ```bash
-$ ./create_inverted_index
+$ ./run
 ```
 
 ## Searching
