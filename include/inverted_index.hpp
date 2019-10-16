@@ -14,7 +14,6 @@
 #include <utility>
 #include <vector>
 
-#include "document.hpp"
 #include "lexicon.hpp"
 #include "log.hpp"
 #include "types.hpp"

@@ -1,0 +1,77 @@
+#include "document_parser.hpp"
+
+DocumentParser::DocumentParser(std::string documentTablePath) {
+    // Erase document table file if it already exists
+    this->documentTableFileStream.open(documentTablePath, std::ofstream::out | std::ofstream::trunc);
+}
+
+DocumentParser::~DocumentParser() {
+    this->documentTableFileStream.close();
+}
+
+void DocumentParser::parseWETFile(std::string inputPath, std::string outputPath) {
+    LOG_I("Parsing documents from " + inputPath);
+
+    // Erase postings file if it already exists
+    std::ofstream postingsFileStream(outputPath, std::ofstream::out | std::ofstream::trunc);
+
+    int numParsedDocuments = 0;
+
+    WETParser parser(inputPath);
+
+    while (!parser.isEOF()) {
+        // if (numParsedDocuments == 100)
+        //     break;
+
+        auto [url, frequencies] = parser.parseDocument();
+
+        // Ignore parsed documents without URL
+        if (url.empty())
+            continue;
+
+        auto docID = this->generateDocumentID();
+
+        // Calculate document size based on the number of parsed terms
+        auto size = frequencies.size();
+
+        // Save parsed postings to postings file
+        this->appendPostingEntries(postingsFileStream, docID, frequencies);
+
+        // Save document table entry to document table file
+        this->appendDocumentTableEntry(this->documentTableFileStream, url, size);
+
+        numParsedDocuments++;
+    }
+
+    postingsFileStream.close();
+
+    LOG_D("Parsed " + inputPath);
+    LOG_D("Processed " << numParsedDocuments << " documents");
+}
+
+void DocumentParser::appendPostingEntries(std::ofstream& fd, doc_id docID, std::vector<std::pair<std::string, int>> frequencies) {
+    for (auto [term, frequency] : frequencies)
+        this->appendPostingEntry(fd, docID, term, frequency);
+}
+
+void DocumentParser::appendPostingEntry(std::ofstream& fd, doc_id docID, std::string term, int frequency) {
+    fd << term;
+    fd << ' ';
+    fd <<  docID;
+    fd << ' ';
+    fd <<  frequency;
+    fd << '\n';
+}
+
+void DocumentParser::appendDocumentTableEntry(std::ofstream& fd, std::string url, int size) {
+    fd << url;
+    fd << ' ';
+    fd << size;
+    fd << '\n';
+}
+
+doc_id DocumentParser::generateDocumentID() {
+    doc_id docID = this->nextAvailableDocumentID;
+    this->nextAvailableDocumentID++;
+    return docID;
+}

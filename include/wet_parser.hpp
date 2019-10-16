@@ -1,7 +1,7 @@
 // Parse WET files containing text extracted from crawled web pages.
 
-#ifndef PARSER_HPP
-#define PARSER_HPP
+#ifndef WET_PARSER_HPP
+#define WET_PARSER_HPP
 
 #include <cctype>
 #include <fstream>
@@ -15,10 +15,10 @@
 
 #define MAX_TERM_SIZE 40
 
-class Parser {
+class WETParser {
   public:
     // Initialize parser with path containing WET file
-    Parser(std::string path);
+    WETParser(std::string path);
 
     // Read document from WET file. Returns URL and term count as a vector of
     // (string, int)
@@ -71,4 +71,4 @@ class Parser {
     bool eof;
 };
 
-#endif // PARSER_HPP
+#endif // WET_PARSER_HPP

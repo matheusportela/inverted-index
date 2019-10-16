@@ -1,10 +1,10 @@
-#include "parser.hpp"
+#include "wet_parser.hpp"
 
-Parser::Parser(std::string path) : path(path), eof(false) {
+WETParser::WETParser(std::string path) : path(path), eof(false) {
     this->infile.open(path);
 }
 
-std::pair<std::string, std::vector<std::pair<std::string, int>>> Parser::parseDocument() {
+std::pair<std::string, std::vector<std::pair<std::string, int>>> WETParser::parseDocument() {
     auto lines = this->parseDocumentLines();
     auto headers = this->parseDocumentHeaders(lines);
     auto content = this->parseDocumentContent(lines);
@@ -14,7 +14,7 @@ std::pair<std::string, std::vector<std::pair<std::string, int>>> Parser::parseDo
     return std::make_pair(url, frequencies);
 }
 
-std::vector<std::string> Parser::parseDocumentLines() {
+std::vector<std::string> WETParser::parseDocumentLines() {
     std::vector<std::string> lines;
     std::string line;
 
@@ -35,7 +35,7 @@ std::vector<std::string> Parser::parseDocumentLines() {
     return lines;
 }
 
-std::string Parser::parseLine() {
+std::string WETParser::parseLine() {
     std::stringstream ss;
     std::string line;
 
@@ -56,19 +56,19 @@ std::string Parser::parseLine() {
     return line;
 }
 
-void Parser::setEOF() {
+void WETParser::setEOF() {
     this->eof = true;
 }
 
-bool Parser::isEOF() {
+bool WETParser::isEOF() {
     return this->eof;
 }
 
-bool Parser::isDocumentBegin(std::string line) {
+bool WETParser::isDocumentBegin(std::string line) {
     return line == "WARC/1.0";
 }
 
-std::vector<std::string> Parser::parseDocumentHeaders(std::vector<std::string> lines) {
+std::vector<std::string> WETParser::parseDocumentHeaders(std::vector<std::string> lines) {
     std::vector<std::string> headers;
 
     for (auto line : lines) {
@@ -81,11 +81,11 @@ std::vector<std::string> Parser::parseDocumentHeaders(std::vector<std::string> l
     return headers;
 }
 
-bool Parser::isLastHeader(std::string line) {
+bool WETParser::isLastHeader(std::string line) {
     return line.rfind("Content-Length: ", 0) == 0;
 }
 
-std::vector<std::string> Parser::parseDocumentContent(std::vector<std::string> lines) {
+std::vector<std::string> WETParser::parseDocumentContent(std::vector<std::string> lines) {
     std::vector<std::string> content;
     int i = 0;
 
@@ -102,7 +102,7 @@ std::vector<std::string> Parser::parseDocumentContent(std::vector<std::string> l
     return content;
 }
 
-std::string Parser::parseDocumentURL(std::vector<std::string> headers) {
+std::string WETParser::parseDocumentURL(std::vector<std::string> headers) {
     std::string url;
 
     for (auto header : headers) {
@@ -113,11 +113,11 @@ std::string Parser::parseDocumentURL(std::vector<std::string> headers) {
     return url;
 }
 
-bool Parser::isURLHeader(std::string line) {
+bool WETParser::isURLHeader(std::string line) {
     return line.rfind("WARC-Target-URI: ", 0) == 0;
 }
 
-std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lines) {
+std::vector<std::string> WETParser::parseDocumentTerms(std::vector<std::string> lines) {
     std::vector<std::string> terms;
     std::stringstream ss;
     std::string term;
@@ -155,15 +155,15 @@ std::vector<std::string> Parser::parseDocumentTerms(std::vector<std::string> lin
     return terms;
 }
 
-bool Parser::isValidCharacter(char c) {
+bool WETParser::isValidCharacter(char c) {
     return ('0' <= c && c <= '9') || ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z');
 }
 
-bool Parser::isValidTerm(std::string term) {
+bool WETParser::isValidTerm(std::string term) {
     return !term.empty() && term.size() <= MAX_TERM_SIZE && this->isTermNotOnlyDigits(term);
 }
 
-bool Parser::isTermNotOnlyDigits(std::string term) {
+bool WETParser::isTermNotOnlyDigits(std::string term) {
     for (char c : term) {
         if ('a' <= c && c <= 'z')
             return true;
@@ -172,7 +172,7 @@ bool Parser::isTermNotOnlyDigits(std::string term) {
     return false;
 }
 
-std::vector<std::pair<std::string, int>> Parser::calculateFrequencies(std::vector<std::string> terms) {
+std::vector<std::pair<std::string, int>> WETParser::calculateFrequencies(std::vector<std::string> terms) {
     std::vector<std::pair<std::string, int>> frequencies;
     std::unordered_map<std::string, int> wordCount;
 
