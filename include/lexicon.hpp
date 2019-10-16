@@ -43,14 +43,14 @@ class Lexicon {
     // Get term metadata from lexicon (listStart, listEnd, numDocs)
     // @param term - Indexed term as string
     // @return Tuple containing (listStart, listEnd, numDocs)
-    std::tuple<int, int, int> getMetadata(std::string term);
+    std::tuple<uint64_t, uint64_t, uint32_t> getMetadata(std::string term);
 
     // Add term metadata to lexicon
     // @param term - Indexed term as string
     // @param listStart - Byte offset where inverted list starts for the term
     // @param listEnd - Byte offset where inverted list ends for the term
     // @param numDocs - Number of documents containing the term
-    void addTermMetadata(std::string term, int listStart, int listEnd, int numDocs);
+    void addTermMetadata(std::string term, uint64_t listStart, uint64_t listEnd, uint32_t numDocs);
 
     // Save lexicon to file
     // @param path - File path to write lexicon
@@ -61,7 +61,7 @@ class Lexicon {
     void load(std::string path);
 
   private:
-    std::unordered_map<std::string, std::tuple<int, int, int>> map;
+    std::unordered_map<std::string, std::tuple<uint64_t, uint64_t, uint32_t>> map;
 };
 
 #endif // LEXICON_HPP

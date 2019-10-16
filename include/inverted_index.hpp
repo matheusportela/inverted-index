@@ -115,7 +115,7 @@ class InvertedIndex {
     // Fetch inverted list from the inverted index file
     // @param listStart - Address of the inverted list start in the inverted
     //      index file.
-    std::vector<std::pair<doc_id, int>> fetchInvertedList(int listStart);
+    std::vector<std::pair<doc_id, int>> fetchInvertedList(uint64_t listStart);
 
     // File stream to read postings
     std::ifstream postingsFileStream;
@@ -142,7 +142,7 @@ class InvertedIndex {
     std::vector<int> currentFrequencies;
 
     // Current inverted index file offset when indexing postings
-    int currentIndexOffset {0};
+    uint64_t currentIndexOffset {0};
 
     // Lexicon used when indexing and searching
     Lexicon lexicon;

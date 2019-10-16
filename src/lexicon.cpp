@@ -1,10 +1,10 @@
 #include "lexicon.hpp"
 
-std::tuple<int, int, int> Lexicon::getMetadata(std::string term) {
+std::tuple<uint64_t, uint64_t, uint32_t> Lexicon::getMetadata(std::string term) {
     return this->map[term];
 }
 
-void Lexicon::addTermMetadata(std::string term, int listStart, int listEnd, int numDocs) {
+void Lexicon::addTermMetadata(std::string term, uint64_t listStart, uint64_t listEnd, uint32_t numDocs) {
     this->map[term] = std::make_tuple(listStart, listEnd, numDocs);
 }
 
@@ -31,9 +31,9 @@ void Lexicon::load(std::string path) {
     std::ifstream fd(path);
 
     std::string term;
-    int listStart;
-    int listEnd;
-    int numDocs;
+    uint64_t listStart;
+    uint64_t listEnd;
+    uint32_t numDocs;
 
     while (fd.good()) {
         fd >> term;

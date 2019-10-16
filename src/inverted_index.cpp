@@ -74,7 +74,7 @@ void InvertedIndex::createInvertedList(std::string term) {
 }
 
 void InvertedIndex::flushInvertedList() {
-    int numDocs = this->currentDocIDs.size();
+    uint32_t numDocs = this->currentDocIDs.size();
 
     // Skip flushing if there are no postings.
     // This may happen in the very first flush, when a new term is found but
@@ -83,14 +83,14 @@ void InvertedIndex::flushInvertedList() {
         return;
 
     // Byte offset where inverted list starts for the current term
-    int listStart = this->currentIndexOffset;
+    uint64_t listStart = this->currentIndexOffset;
 
     this->writeNumberOfDocs(numDocs);
     this->writeDocumentIDs();
     this->writeFrequencies();
 
     // Byte offset where inverted list ends for the current term
-    int listEnd = this->currentIndexOffset;
+    uint64_t listEnd = this->currentIndexOffset;
 
     // Add flushed inverted list to lexicon
     this->lexicon.addTermMetadata(this->currentTerm, listStart, listEnd, numDocs);
@@ -138,7 +138,7 @@ std::vector<std::pair<doc_id, int>> InvertedIndex::search(std::string term) {
     return result;
 }
 
-std::vector<std::pair<doc_id, int>> InvertedIndex::fetchInvertedList(int listStart) {
+std::vector<std::pair<doc_id, int>> InvertedIndex::fetchInvertedList(uint64_t listStart) {
     std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
 
     // Go to inverted list start
