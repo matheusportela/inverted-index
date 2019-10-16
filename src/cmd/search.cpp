@@ -9,14 +9,14 @@
 int main() {
     LOG_SET_INFO();
 
-    const std::string dir = "../tmp";
-    const std::string documentTableInputPath = dir + "/document-table.txt";
-    const std::string lexiconInputPath = dir + "/lexicon.txt";
-    const std::string indexInputPath = dir + "/index.txt";
+    const std::string path = "../tmp";
+    const std::string documentTableInputPath = path + "/document-table.txt";
+    const std::string lexiconInputPath = path + "/lexicon.txt";
+    const std::string indexInputPath = path + "/index.txt";
 
     DocumentTable document_table;
     Lexicon lexicon;
-    InvertedIndex inverted_index;
+    InvertedIndex inverted_index(path);
 
     LOG_I("Initializing searcher");
 

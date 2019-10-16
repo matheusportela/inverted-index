@@ -20,26 +20,41 @@
 
 class InvertedIndex {
   public:
-    void buildFromIntermediatePostings(std::string inputPath, std::string outputPath, Lexicon& lexicon);
+    InvertedIndex(std::string path);
+
+    void index();
 
     std::vector<std::pair<doc_id, int>> getInvertedList(std::string path, int listStart);
 
   private:
     std::tuple<std::string, doc_id, int> readPosting();
-    void processPosting(std::tuple<std::string, doc_id, int> posting, Lexicon& lexicon);
+    void processPosting(std::tuple<std::string, doc_id, int> posting);
     bool isNewTerm(std::string termID);
     void createInvertedList(std::string termID);
-    void flushInvertedList(Lexicon& lexicon);
+    void flushInvertedList();
+    void writeNumberOfDocs(uint32_t numDocs);
+    void writeDocumentIDs();
+    void writeFrequencies();
+    void write(char* addr, unsigned int size);
 
-    std::ifstream input;
-    std::ofstream output;
+    void readNumberOfDocs();
+    void readDocumentIDs();
+    void readFrequencies();
 
-    bool isFirstTerm {true};
+    std::ifstream postingsFileStream;
+    std::ofstream indexFileStream;
+
+    std::string postingsPath;
+    std::string indexPath;
+    std::string lexiconPath;
+
     std::string currentTerm;
     std::vector<doc_id> currentDocIDs;
     std::vector<int> currentFrequencies;
 
     int currentIndexOffset {0};
+
+    Lexicon lexicon;
 };
 
 #endif // INVERTED_INDEX_HPP

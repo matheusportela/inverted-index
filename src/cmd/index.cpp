@@ -5,23 +5,14 @@
 int main() {
     LOG_SET_INFO();
 
-    const std::string dir = "../tmp";
-    const std::string intermediateLexiconPath = dir + "/lexicon-intermediate.txt";
-    const std::string postingsPath = dir + "/merged-postings.txt";
-    const std::string indexOutputPath = dir + "/index.txt";
-    const std::string lexiconOutputPath = dir + "/lexicon.txt";
-
-    Lexicon lexicon;
+    const std::string path = "../tmp";
 
     LOG_I("Creating inverted index");
 
-    InvertedIndex inverted_index;
-    inverted_index.buildFromIntermediatePostings(postingsPath, indexOutputPath, lexicon);
+    InvertedIndex inverted_index(path);
+    inverted_index.index();
 
     LOG_I("Created inverted index");
-
-    LOG_I("Writing lexicon to " << lexiconOutputPath);
-    lexicon.write(lexiconOutputPath);
 
     return 0;
 }

@@ -1,24 +1,37 @@
 #include "inverted_index.hpp"
 
-void InvertedIndex::buildFromIntermediatePostings(std::string inputPath, std::string outputPath, Lexicon& lexicon) {
-    this->input.open(inputPath);
-    this->output.open(outputPath, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+InvertedIndex::InvertedIndex(std::string path) {
+    this->postingsPath = path + "/merged-postings.txt";
+    this->indexPath = path + "/index.txt";
+    this->lexiconPath = path + "/lexicon.txt";
+}
 
-    while (this->input.good()) {
+void InvertedIndex::index() {
+    // Open file containing all postings to index
+    this->postingsFileStream.open(this->postingsPath);
+
+    // Open file to write index in binary format
+    // Erase index file if it already exists
+    this->indexFileStream.open(this->indexPath, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+
+    while (this->postingsFileStream.good()) {
         auto posting = this->readPosting();
 
-        // Check whether file stream is EOF _after_ reading post because there
+        // Check whether file stream is EOF *after* reading post because there
         // is a trailing empty line at the end of the file
-        if (this->input.eof())
+        if (this->postingsFileStream.eof())
             break;
 
-        this->processPosting(posting, lexicon);
+        this->processPosting(posting);
     }
 
-    this->flushInvertedList(lexicon);
+    this->flushInvertedList();
 
-    this->input.close();
-    this->output.close();
+    this->postingsFileStream.close();
+    this->indexFileStream.close();
+
+    // Write lexicon after indexing postings
+    this->lexicon.write(lexiconPath);
 }
 
 std::tuple<std::string, doc_id, int> InvertedIndex::readPosting() {
@@ -26,21 +39,18 @@ std::tuple<std::string, doc_id, int> InvertedIndex::readPosting() {
     doc_id docID;
     int count;
 
-    this->input >> term;
-    this->input >> docID;
-    this->input >> count;
+    this->postingsFileStream >> term;
+    this->postingsFileStream >> docID;
+    this->postingsFileStream >> count;
 
     return std::make_tuple(term, docID, count);
 }
 
-void InvertedIndex::processPosting(std::tuple<std::string, doc_id, int> posting, Lexicon& lexicon) {
+void InvertedIndex::processPosting(std::tuple<std::string, doc_id, int> posting) {
     auto [term, docID, count] = posting;
 
-    if (this->isFirstTerm) {
-        this->createInvertedList(term);
-        this->isFirstTerm = false;
-    } else if (this->isNewTerm(term)) {
-        this->flushInvertedList(lexicon);
+    if (this->isNewTerm(term)) {
+        this->flushInvertedList();
         this->createInvertedList(term);
     }
 
@@ -58,53 +68,81 @@ void InvertedIndex::createInvertedList(std::string term) {
     this->currentFrequencies.clear();
 }
 
-void InvertedIndex::flushInvertedList(Lexicon& lexicon) {
+void InvertedIndex::flushInvertedList() {
+    int numDocs = this->currentDocIDs.size();
+
+    // Skip flushing if there are no postings.
+    // This may happen in the very first flush, when a new term is found but
+    // no posting is in memory yet.
+    if (numDocs == 0)
+        return;
+
+    // Byte offset where inverted list starts for the current term
     int listStart = this->currentIndexOffset;
 
-    uint32_t numDocs = this->currentDocIDs.size();
-    this->output.write((char*)&numDocs, sizeof(numDocs));
-    this->currentIndexOffset += sizeof(numDocs);
+    this->writeNumberOfDocs(numDocs);
+    this->writeDocumentIDs();
+    this->writeFrequencies();
 
+    // Byte offset where inverted list ends for the current term
+    int listEnd = this->currentIndexOffset;
+
+    // Add flushed inverted list to lexicon
+    this->lexicon.addTermMetadata(this->currentTerm, listStart, listEnd, numDocs);
+}
+
+void InvertedIndex::writeNumberOfDocs(uint32_t numDocs) {
+    this->write((char*)&numDocs, sizeof(numDocs));
+}
+
+void InvertedIndex::writeDocumentIDs() {
     int previousDocID = 0;
     for (auto docID : this->currentDocIDs) {
+        // Write docID as differences for later compression
         uint32_t compressedDocID = docID - previousDocID;
         previousDocID = docID;
 
-        this->output.write((char*)&compressedDocID, sizeof(compressedDocID));
-        this->currentIndexOffset += sizeof(compressedDocID);
+        this->write((char*)&compressedDocID, sizeof(compressedDocID));
     }
+}
 
+void InvertedIndex::writeFrequencies() {
     for (auto frequency : this->currentFrequencies) {
         uint32_t freq = frequency;
-        this->output.write((char*)&freq, sizeof(freq));
-        this->currentIndexOffset += sizeof(freq);
+        this->write((char*)&freq, sizeof(freq));
     }
+}
 
-    int listEnd = this->currentIndexOffset;
-
-    std::string term = this->currentTerm;
-    lexicon.addTermMetadata(term, listStart, listEnd, numDocs);
+void InvertedIndex::write(char* addr, unsigned int size) {
+    this->indexFileStream.write(addr, size);
+    this->currentIndexOffset += size;
 }
 
 std::vector<std::pair<doc_id, int>> InvertedIndex::getInvertedList(std::string path, int listStart) {
     std::ifstream fd(path, std::ofstream::in | std::ofstream::binary);
 
+    // Go to inverted list start
     fd.seekg(listStart);
 
+    // Read number of docs
     uint32_t numDocs;
     fd.read((char*)&numDocs, sizeof(numDocs));
 
+    // Read document IDs
     std::vector<doc_id> documents;
     uint32_t docID = 0;
     uint32_t compressedDocID;
 
     for (int i = 0; i < numDocs; i++) {
         fd.read((char*)&compressedDocID, sizeof(compressedDocID));
+
+        // Uncompress by accumulating all previous document IDs
         docID += compressedDocID;
 
         documents.push_back(docID);
     }
 
+    // Read frequencies
     std::vector<int> frequencies;
     uint32_t frequency;
 
