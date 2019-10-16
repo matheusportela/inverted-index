@@ -4,7 +4,7 @@ Didactic inverted index
 
 ## Requirements
 
-- C++11
+- C++17
 - CMake
 - GNU Make
 
