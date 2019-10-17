@@ -5,12 +5,15 @@ echo "$(date) - Merging intermediate postings"
 cd tmp
 for filename in postings-*.txt; do
     echo "$(date) - Sorting $filename"
-    sort -t ' ' -k 1,1 -k 2,2n $filename > sorted-$filename
+    # sort -t ' ' -k 1,1 -k 2,2n -o sorted-$filename $filename
+    sort -t ' ' -k 1,1 -k 2,2n -o $filename $filename
 done
 
 echo "$(date) - Merging to merged-postings.txt"
-sort -t ' ' -k 1,1 -k 2,2n -m sorted-postings-*.txt > merged-postings.txt
+# sort -t ' ' -k 1,1 -k 2,2n -m -o merged-postings.txt sorted-postings-*.txt
+sort -t ' ' -k 1,1 -k 2,2n -m -o merged-postings.txt postings-*.txt
 
-rm sorted-postings-*.txt
+# rm sorted-postings-*.txt
+rm postings-*.txt
 
 echo "$(date) - Merged intermediate postings"
