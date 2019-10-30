@@ -1,8 +1,7 @@
 #include <cctype>
 #include <iostream>
 
-#include "document_table.hpp"
-#include "inverted_index.hpp"
+#include "query_engine.hpp"
 #include "lexicon.hpp"
 #include "log.hpp"
 
@@ -11,17 +10,14 @@ int main() {
 
     const std::string path = "../tmp";
 
-    LOG_I("Initializing searcher");
+    LOG_I("Initializing query engine");
 
     LOG_I("Loading document table");
-    DocumentTable document_table(path);
-    document_table.load();
 
-    LOG_I("Loading inverted index lexicon");
-    InvertedIndex inverted_index(path);
-    inverted_index.load();
+    QueryEngine query_engine(path);
+    query_engine.load();
 
-    LOG_I("Initialized searcher");
+    LOG_I("Initialized query engine");
 
     std::string term;
 
@@ -37,14 +33,14 @@ int main() {
 
         LOG_D("Searching for term '" << term << "'");
 
-        auto list = inverted_index.search(term);
-        std::cout << "number of documents: " << list.size() << std::endl;
+        auto search_result = query_engine.search(term);
+        std::cout << "number of documents: " << search_result.size() << std::endl;
 
-        if (list.size() == 0)
+        if (search_result.size() == 0)
             continue;
 
-        for (auto [docID, frequency] : list)
-            std::cout << docID << " " << frequency << " " << document_table.getDocumentURL(docID) << std::endl;
+        for (auto [url, frequency] : search_result)
+            std::cout << frequency << " " << url << std::endl;
 
         std::cout << std::endl;
     }
