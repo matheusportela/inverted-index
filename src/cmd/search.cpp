@@ -39,8 +39,8 @@ int main() {
         if (search_result.size() == 0)
             continue;
 
-        for (auto [url, frequency] : search_result)
-            std::cout << frequency << " " << url << std::endl;
+        for (auto [url, score] : search_result)
+            std::cout << score << " " << url << std::endl;
 
         std::cout << std::endl;
     }
