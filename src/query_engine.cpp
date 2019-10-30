@@ -42,7 +42,7 @@ std::vector<std::pair<doc_id, float>> QueryEngine::calculateInvertedListScore(st
 float QueryEngine::calculateBM25Score(float average_document_size, int document_table_size, int inverted_list_size, int term_frequency, int document_size) {
     // Okapi BM25 ranking function
     // Reference: https://en.wikipedia.org/wiki/Okapi_BM25
-    const float k = 1.5;
+    const float k = 1.2;
     const float b = 0.75;
 
     float idf = log((document_table_size - inverted_list_size + 0.5)/(inverted_list_size + 0.5));
