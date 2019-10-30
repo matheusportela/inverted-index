@@ -12,4 +12,5 @@ cd ..
 cd build
 ./index
 
+cd ..
 rm tmp/merged-postings.txt
