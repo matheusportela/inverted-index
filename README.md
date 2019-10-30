@@ -27,7 +27,7 @@ $ ./download
 Index all WET documents in `data/common-crawl`.
 
 ```bash
-$ ./run
+$ ./index
 ```
 
 ## Searching
