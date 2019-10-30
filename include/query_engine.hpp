@@ -6,6 +6,7 @@
 #define QUERY_ENGINE_HPP
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <utility>
@@ -26,7 +27,7 @@ class QueryEngine {
   private:
     std::vector<std::pair<doc_id, int>> getInvertedList(std::string term);
     std::vector<std::pair<doc_id, float>> calculateInvertedListScore(std::vector<std::pair<doc_id, int>> inverted_list);
-    float calculateDocumentScore(int term_frequency);
+    float calculateBM25Score(float average_document_size, int document_table_size, int inverted_list_length, int term_frequency, int document_length);
     std::vector<std::pair<doc_id, float>> getTopDocuments(std::vector<std::pair<doc_id, float>> document_scores);
     std::vector<std::pair<std::string, float>> getTopURLs(std::vector<std::pair<doc_id, float>> top_documents);
 

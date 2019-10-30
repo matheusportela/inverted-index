@@ -43,6 +43,9 @@ class DocumentTable {
     // Return document size from table given document ID
     int getDocumentSize(doc_id documentID);
 
+    // Return average document size when table is loaded
+    float getAverageDocumentSize();
+
     // Load document table from file
     void load();
 
@@ -51,6 +54,8 @@ class DocumentTable {
 
     // Maps doc_id to (URL, page size)
     std::vector<std::tuple<std::string, int>> documents;
+
+    float average_document_size;
 };
 
 #endif // DOCUMENT_TABLE_HPP

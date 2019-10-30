@@ -16,6 +16,10 @@ int DocumentTable::getDocumentSize(doc_id documentID) {
     return std::get<1>(this->documents[documentID]);
 }
 
+float DocumentTable::getAverageDocumentSize() {
+    return this->average_document_size;
+}
+
 void DocumentTable::load() {
     std::ifstream fd(this->documentTableFilePath);
 
@@ -24,6 +28,8 @@ void DocumentTable::load() {
 
     this->documents.clear();
 
+    this->average_document_size = 0;
+
     while (fd.good()) {
         fd >> url;
         fd >> size;
@@ -31,7 +37,12 @@ void DocumentTable::load() {
         if (fd.eof())
             break;
 
+        // Add to documents list
         this->documents.push_back(std::make_tuple(url, size));
+
+        // Update cumulative moving average
+        // Reference: https://en.wikipedia.org/wiki/Moving_average#Cumulative_moving_average
+        this->average_document_size = this->average_document_size + (size - this->average_document_size)/(this->documents.size() + 1);
     }
 
     fd.close();
