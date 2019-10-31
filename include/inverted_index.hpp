@@ -65,6 +65,9 @@ struct list_descriptor {
     int currentIndex;
     doc_id currentDocID;
     int currentFrequency;
+
+    unsigned char* block;
+    unsigned int blockOffset;
 };
 
 class InvertedIndex {
@@ -89,6 +92,7 @@ class InvertedIndex {
     void close(list_p lp);
     doc_id next(list_p lp, doc_id docID);
     bool end(list_p lp);
+    void readBlock(list_p lp);
     int getFrequency(list_p lp);
     int getNumDocuments(list_p lp);
 
