@@ -60,7 +60,8 @@
 #define INVERTED_LIST_END 1000000000
 
 struct list_descriptor {
-    uint64_t offset;
+    uint64_t indexOffset;
+
     unsigned int numDocs;
     int currentIndex;
     doc_id currentDocID;

@@ -196,7 +196,7 @@ list_p InvertedIndex::open(std::string term) {
     LOG_D("Number of docs for term '" << term << "': " << numDocs);
 
     this->list_pointer_table[lp] = {
-        .offset=invertedListStart + sizeof(numDocs),
+        .indexOffset=invertedListStart + sizeof(numDocs),
         .numDocs=numDocs,
         .currentIndex=0,
         .currentDocID=0,
@@ -229,8 +229,6 @@ doc_id InvertedIndex::next(list_p lp, doc_id docID) {
     if (ld.currentIndex == ld.numDocs)
         return INVERTED_LIST_END;
 
-    // std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
-
     do {
         if (ld.currentIndex == ld.numDocs) {
             // LOG_D("End of inverted list");
@@ -240,46 +238,28 @@ doc_id InvertedIndex::next(list_p lp, doc_id docID) {
 
         // Uncompress data
         // Document ID
-        // fd.seekg(ld.offset);
-
-        // uint32_t fileCompressedDocID;
-        // uint32_t fileCurrentDocID;
-        // fd.read((char*)&fileCompressedDocID, sizeof(fileCompressedDocID));
-        // fileCurrentDocID = ld.currentDocID + fileCompressedDocID;
-        // LOG_D("File - offset: " << ld.offset);
-        // LOG_D("File - doc ID: " << fileCurrentDocID);
-
-        uint32_t blockCompressedDocID;
-        uint32_t blockCurrentDocID;
-        // blockCompressedDocID = (uint32_t)(ld.block[ld.blockOffset]);
         auto docIDOffset = ld.blockOffset;
-        blockCompressedDocID = ld.block[docIDOffset] | ld.block[docIDOffset + 1] << 8 | ld.block[docIDOffset + 2] << 16 | ld.block[docIDOffset + 3] << 24;
-        blockCurrentDocID = ld.currentDocID + blockCompressedDocID;
-        // LOG_D("Block - offset: " << ld.blockOffset);
-        // LOG_D("Block - doc ID: " << blockCurrentDocID);
+        uint32_t compressedDocID = ld.block[docIDOffset]
+                                 | ld.block[docIDOffset + 1] << 8
+                                 | ld.block[docIDOffset + 2] << 16
+                                 | ld.block[docIDOffset + 3] << 24;
+        uint32_t currentDocID = ld.currentDocID + compressedDocID;
+        // LOG_D("Block - doc ID offset: " << docIDOffset);
+        // LOG_D("Block - doc ID: " << currentDocID);
 
         // Frequency
-        // fd.seekg(ld.offset + ld.numDocs*sizeof(uint32_t));
-
-        // uint32_t fileFrequency;
-        // fd.read((char*)&fileFrequency, sizeof(fileFrequency));
-        // LOG_D("File - frequency: " << ld.currentFrequency);
-
-        uint32_t blockFrequency;
-        // blockFrequency = (uint32_t)(ld.block[ld.blockOffset + ld.numDocs*sizeof(uint32_t)]);
         auto freqOffset = ld.blockOffset + ld.numDocs*sizeof(uint32_t);
-        blockFrequency = ld.block[freqOffset] | ld.block[freqOffset + 1] << 8 | ld.block[freqOffset + 2] << 16 | ld.block[freqOffset + 3] << 24;
-        // LOG_D("Block - frequency: " << ld.currentFrequency);
-
-        // assert(fileCurrentDocID == blockCurrentDocID);
-        // assert(fileFrequency == blockFrequency);
+        uint32_t currentFrequency = ld.block[freqOffset]
+                                  | ld.block[freqOffset + 1] << 8
+                                  | ld.block[freqOffset + 2] << 16
+                                  | ld.block[freqOffset + 3] << 24;
+        // LOG_D("Block - freq offset: " << freqOffset);
+        // LOG_D("Block - frequency: " << currentFrequency);
 
         // Bookkeeping
-        // ld.currentDocID = fileCurrentDocID;
-        // ld.currentFrequency = fileFrequency;
-        ld.currentDocID = blockCurrentDocID;
-        ld.currentFrequency = blockFrequency;
-        ld.offset += sizeof(uint32_t);
+        ld.currentDocID = currentDocID;
+        ld.currentFrequency = currentFrequency;
+        ld.indexOffset += sizeof(uint32_t);
         ld.blockOffset += sizeof(uint32_t);
         ld.currentIndex++;
         // LOG_D("Current index: " << ld.currentIndex);
@@ -288,10 +268,7 @@ doc_id InvertedIndex::next(list_p lp, doc_id docID) {
     // Update table
     this->list_pointer_table[lp] = ld;
 
-    // fd.close();
-
     // LOG_D("Returned doc ID: " << ld.currentDocID);
-
     return ld.currentDocID;
 }
 
@@ -312,7 +289,7 @@ void InvertedIndex::readBlock(list_p lp) {
     ld.block = (unsigned char*)malloc(block_size);
 
     std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
-    fd.seekg(ld.offset);
+    fd.seekg(ld.indexOffset);
     fd.read((char*)ld.block, block_size);
     fd.close();
 
