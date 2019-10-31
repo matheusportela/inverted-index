@@ -8,4 +8,7 @@
 // Document ID
 typedef int doc_id;
 
+// List pointer
+typedef int list_p;
+
 #endif // TYPES_HPP

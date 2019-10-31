@@ -12,31 +12,103 @@ void QueryEngine::load() {
     this->inverted_index->load();
 }
 
-std::vector<std::pair<std::string, float>> QueryEngine::search(std::string term) {
-    auto inverted_list = this->getInvertedList(term);
-    auto document_scores = this->calculateInvertedListScore(inverted_list);
+std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::query(std::string query_string) {
+    auto terms = this->splitQuery(query_string);
+
+    auto document_scores = this->getDocuments(terms);
+    LOG_D("Number of documents: " << document_scores.size());
+
     auto top_documents = this->getTopDocuments(document_scores);
     auto result = this->getTopURLs(top_documents);
     return result;
 }
 
-std::vector<std::pair<doc_id, int>> QueryEngine::getInvertedList(std::string term) {
-    return this->inverted_index->search(term);
+std::vector<std::string> QueryEngine::splitQuery(std::string query_string) {
+    std::vector<std::string> terms;
+
+    std::istringstream ss(query_string);
+
+    while (ss) {
+        std::string term;
+        ss >> term;
+
+        if (term.size() > 0) {
+            LOG_D("Term: " << term);
+            terms.push_back(term);
+        }
+    };
+
+    return terms;
 }
 
-std::vector<std::pair<doc_id, float>> QueryEngine::calculateInvertedListScore(std::vector<std::pair<doc_id, int>> inverted_list) {
-    std::vector<std::pair<doc_id, float>> document_scores;
-    auto average_document_size = this->document_table->getAverageDocumentSize();
-    auto document_table_size = this->document_table->size();
-    auto inverted_list_size = inverted_list.size();
-
-    for (auto [docID, term_frequency] : inverted_list) {
-        auto document_size = this->document_table->getDocumentSize(docID);
-        auto score = this->calculateBM25Score(average_document_size, document_table_size, inverted_list_size, term_frequency, document_size);
-        document_scores.push_back(std::make_pair(docID, score));
+std::vector<std::tuple<doc_id, float, std::vector<int>>> QueryEngine::getDocuments(std::vector<std::string> terms) {
+    // Open one list per term
+    std::vector<list_p> lps;
+    for (auto term : terms) {
+        auto lp = this->inverted_index->open(term);
+        lps.push_back(lp);
     }
 
-    return document_scores;
+    doc_id docID = 0;
+
+    // Score data
+    auto average_document_size = this->document_table->getAverageDocumentSize();
+    auto document_table_size = this->document_table->size();
+    std::vector<std::tuple<doc_id, float, std::vector<int>>> documents;
+
+    while (docID != INVERTED_LIST_END) {
+        // Get next post from shortest list
+        docID = this->inverted_index->next(lps[0], docID);
+
+        // LOG_D("Doc ID: " << docID);
+
+        // Exit when reaching list end
+        if (docID == INVERTED_LIST_END) {
+            // LOG_D("Exiting due to list end");
+            break;
+        }
+
+        // Find posting with same document ID in other lists
+        doc_id candidateDocID = 0;
+        for (int i = 1; (i < terms.size() && (candidateDocID = this->inverted_index->next(lps[i], docID)) == docID); i++);
+
+        if (candidateDocID > docID) {
+            // LOG_D("Updating to candidateDocID: " << candidateDocID);
+            docID = candidateDocID;
+        } else {
+            // LOG_D("Calculating score");
+            float score = 0;
+            std::vector<int> term_frequencies;
+
+            for (auto lp : lps) {
+                auto term_frequency = this->inverted_index->getFrequency(lp);
+                auto document_size = this->document_table->getDocumentSize(docID);
+                auto inverted_list_size = this->inverted_index->getNumDocuments(lp);
+
+                auto term_score = this->calculateBM25Score(average_document_size, document_table_size, inverted_list_size, term_frequency, document_size);
+
+                // LOG_D("Term score: " << term_score);
+
+                score += term_score;
+
+                term_frequencies.push_back(term_frequency);
+            }
+
+            // LOG_D("Score: " << score);
+
+            documents.push_back(std::make_tuple(docID, score, term_frequencies));
+
+            // Go to next document
+            // docID++;
+        }
+    }
+
+    // Close all lists
+    for (auto lp : lps) {
+        this->inverted_index->close(lp);
+    }
+
+    return documents;
 }
 
 float QueryEngine::calculateBM25Score(float average_document_size, int document_table_size, int inverted_list_size, int term_frequency, int document_size) {
@@ -52,19 +124,25 @@ float QueryEngine::calculateBM25Score(float average_document_size, int document_
     return score;
 }
 
-std::vector<std::pair<doc_id, float>> QueryEngine::getTopDocuments(std::vector<std::pair<doc_id, float>> document_scores) {
-    sort(document_scores.begin(), document_scores.end(), [](auto &a, auto &b) { return a.second > b.second; });
+std::vector<std::tuple<doc_id, float, std::vector<int>>> QueryEngine::getTopDocuments(std::vector<std::tuple<doc_id, float, std::vector<int>>> documents) {
+    sort(documents.begin(), documents.end(), [](auto &a, auto &b) { return std::get<1>(a) > std::get<1>(b); });
 
-    std::vector<std::pair<doc_id, float>> top_documents(document_scores.begin(), document_scores.begin() + NUM_TOP_DOCUMENTS);
+    std::vector<std::tuple<doc_id, float, std::vector<int>>> top_documents(documents);
+
+    // Limit number of documents
+    if (documents.size() > NUM_TOP_DOCUMENTS) {
+        top_documents = std::vector<std::tuple<doc_id, float, std::vector<int>>>(documents.begin(), documents.begin() + NUM_TOP_DOCUMENTS);
+    }
+
     return top_documents;
 }
 
-std::vector<std::pair<std::string, float>> QueryEngine::getTopURLs(std::vector<std::pair<doc_id, float>> top_documents) {
-    std::vector<std::pair<std::string, float>> result;
+std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::getTopURLs(std::vector<std::tuple<doc_id, float, std::vector<int>>> top_documents) {
+    std::vector<std::tuple<std::string, float, std::vector<int>>> result;
 
-    for (auto [docID, score] : top_documents) {
+    for (auto [docID, score, term_frequencies] : top_documents) {
         auto url = this->document_table->getDocumentURL(docID);
-        result.push_back(std::make_pair(url, score));
+        result.push_back(std::make_tuple(url, score, term_frequencies));
     }
 
     return result;

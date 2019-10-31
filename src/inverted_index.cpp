@@ -181,3 +181,112 @@ std::vector<std::pair<doc_id, int>> InvertedIndex::fetchInvertedList(uint64_t li
 
     return result;
 }
+
+list_p InvertedIndex::open(std::string term) {
+    list_p lp = this->next_list_pointer;
+    this->next_list_pointer++;
+
+    auto [invertedListStart, _invertedListEnd, _numDocs] = this->lexicon.getMetadata(term);
+    std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
+    fd.seekg(invertedListStart);
+
+    // Read number of docs
+    uint32_t numDocs;
+    fd.read((char*)&numDocs, sizeof(numDocs));
+    LOG_D("Number of docs for term '" << term << "': " << numDocs);
+
+    this->list_pointer_table[lp] = {
+        .offset=invertedListStart + sizeof(numDocs),
+        .numDocs=numDocs,
+        .currentIndex=0,
+        .currentDocID=0,
+        .currentFrequency=0
+    };
+
+    fd.close();
+    return lp;
+}
+
+void InvertedIndex::close(list_p lp) {
+    this->assertListIsOpen(lp);
+
+    this->list_pointer_table.erase(lp);
+}
+
+doc_id InvertedIndex::next(list_p lp, doc_id docID) {
+    this->assertListIsOpen(lp);
+
+    auto ld = this->list_pointer_table[lp];
+
+    if (ld.currentIndex == ld.numDocs)
+        return INVERTED_LIST_END;
+
+    std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
+
+    do {
+        if (ld.currentIndex == ld.numDocs) {
+            // LOG_D("End of inverted list");
+            ld.currentDocID = INVERTED_LIST_END;
+            goto out;
+        }
+
+        // Uncompress data
+        // Document ID
+        fd.seekg(ld.offset);
+        uint32_t compressedDocID;
+        fd.read((char*)&compressedDocID, sizeof(compressedDocID));
+        ld.currentDocID += compressedDocID;
+        // LOG_D("Current offset: " << ld.offset);
+        // LOG_D("Current doc ID: " << ld.currentDocID);
+
+        // Frequency
+        fd.seekg(ld.offset + ld.numDocs*sizeof(compressedDocID));
+        uint32_t frequency;
+        fd.read((char*)&frequency, sizeof(frequency));
+        ld.currentFrequency = frequency;
+        // LOG_D("Current frequency: " << ld.currentFrequency);
+
+        // Bookkeeping
+        ld.offset += sizeof(compressedDocID);
+        ld.currentIndex++;
+        // LOG_D("Current index: " << ld.currentIndex);
+    } while (ld.currentDocID < docID);
+
+out:
+    // Update table
+    this->list_pointer_table[lp] = ld;
+
+    fd.close();
+
+    // LOG_D("Returned doc ID: " << ld.currentDocID);
+
+    return ld.currentDocID;
+}
+
+bool InvertedIndex::end(list_p lp) {
+    this->assertListIsOpen(lp);
+
+    auto ld = this->list_pointer_table[lp];
+    return ld.currentDocID == INVERTED_LIST_END;
+}
+
+int InvertedIndex::getFrequency(list_p lp) {
+    this->assertListIsOpen(lp);
+
+    auto ld = this->list_pointer_table[lp];
+    return ld.currentFrequency;
+}
+
+int InvertedIndex::getNumDocuments(list_p lp) {
+    this->assertListIsOpen(lp);
+
+    auto ld = this->list_pointer_table[lp];
+    return ld.numDocs;
+}
+
+void InvertedIndex::assertListIsOpen(list_p lp) {
+    if (this->list_pointer_table.find(lp) == this->list_pointer_table.end()) {
+        LOG_E("List " << lp << "is not open");
+        exit(1);
+    }
+}

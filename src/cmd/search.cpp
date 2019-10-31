@@ -1,12 +1,13 @@
 #include <cctype>
 #include <iostream>
+#include <tuple>
 
 #include "query_engine.hpp"
 #include "lexicon.hpp"
 #include "log.hpp"
 
 int main() {
-    LOG_SET_INFO();
+    LOG_SET_DEBUG();
 
     const std::string path = "../tmp";
 
@@ -19,28 +20,35 @@ int main() {
 
     LOG_I("Initialized query engine");
 
-    std::string term;
+    std::string query;
 
     while (true) {
         std::cout << "> ";
-        std::cin >> term;
+        std::getline(std::cin, query);
 
-        // Convert term to lowercase
-        for (int i = 0; i < term.size(); i++) {
-            if ('A' <= term[i] && term[i] <= 'Z')
-                term[i] = (char)(term[i] + 32);
+        // Convert query to lowercase
+        for (int i = 0; i < query.size(); i++) {
+            if ('A' <= query[i] && query[i] <= 'Z')
+                query[i] = (char)(query[i] + 32);
         }
 
-        LOG_D("Searching for term '" << term << "'");
+        LOG_D("Querying '" << query << "'");
 
-        auto search_result = query_engine.search(term);
+        auto search_result = query_engine.query(query);
         std::cout << "number of documents: " << search_result.size() << std::endl;
 
         if (search_result.size() == 0)
             continue;
 
-        for (auto [url, score] : search_result)
-            std::cout << score << " " << url << std::endl;
+        for (auto [url, score, term_frequencies] : search_result) {
+            std::cout << "score: " << score << " ";
+
+            std::cout << "terms: ";
+            for (auto term_frequency : term_frequencies)
+                std::cout << term_frequency << " ";
+
+            std::cout << "url: " << url << std::endl;
+        }
 
         std::cout << std::endl;
     }
