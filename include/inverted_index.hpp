@@ -131,7 +131,7 @@ class InvertedIndex {
     // Write data to inverted index file and update current byte offset
     void write(char* addr, unsigned int size);
 
-    void assertListIsOpen(list_p lp);
+    std::shared_ptr<InvertedList> getOpenInvertedList(list_p lp);
 
     // Fetch inverted list from the inverted index file
     // @param listStart - Address of the inverted list start in the inverted

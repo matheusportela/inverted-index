@@ -191,28 +191,29 @@ list_p InvertedIndex::open(std::string term) {
 }
 
 void InvertedIndex::close(list_p lp) {
-    this->assertListIsOpen(lp);
     this->openLists.erase(lp);
 }
 
 doc_id InvertedIndex::next(list_p lp, doc_id docID) {
-    this->assertListIsOpen(lp);
-    return this->openLists[lp]->nextGEQ(docID);
+    auto inverted_list = this->getOpenInvertedList(lp);
+    return inverted_list->nextGEQ(docID);
 }
 
 int InvertedIndex::getFrequency(list_p lp) {
-    this->assertListIsOpen(lp);
-    return this->openLists[lp]->getCurrentFrequency();
+    auto inverted_list = this->getOpenInvertedList(lp);
+    return inverted_list->getCurrentFrequency();
 }
 
 int InvertedIndex::getNumDocuments(list_p lp) {
-    this->assertListIsOpen(lp);
-    return this->openLists[lp]->getNumDocuments();
+    auto inverted_list = this->getOpenInvertedList(lp);
+    return inverted_list->getNumDocuments();
 }
 
-void InvertedIndex::assertListIsOpen(list_p lp) {
-    if (this->openLists.find(lp) == this->openLists.end()) {
+std::shared_ptr<InvertedList> InvertedIndex::getOpenInvertedList(list_p lp) {
+    auto it = this->openLists.find(lp);
+    if (it == this->openLists.end()) {
         LOG_E("List " << lp << "is not open");
         exit(1);
     }
+    return it->second;
 }
