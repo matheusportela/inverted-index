@@ -9,6 +9,10 @@ InvertedList::InvertedList(std::string term) : term(term) {
     LOG_D("Inverted list ID: " << this->id);
 }
 
+InvertedList::~InvertedList() {
+    this->close();
+}
+
 list_p InvertedList::getID() {
     return this->id;
 }
@@ -196,12 +200,17 @@ int InvertedList::writeByteStream(std::ofstream& fd, std::vector<uint8_t> bytest
 }
 
 void InvertedList::read(std::ifstream& fd) {
-    this->docIDs.clear();
-    this->frequencies.clear();
+    // this->docIDs.clear();
+    // this->frequencies.clear();
 
     this->readMetadata(fd);
-    this->readBlocks(fd);
+    // this->readBlocks(fd);
+
     LOG_D("Number of docs for term '" << term << "': " << this->numDocs);
+
+    // TODO: Only read first block if necessary
+    this->readBlockMetadata(fd);
+    this->readBlock(fd);
 }
 
 void InvertedList::readMetadata(std::ifstream& fd) {
@@ -215,16 +224,23 @@ void InvertedList::readBlocks(std::ifstream& fd) {
     }
 }
 
+void InvertedList::readBlockMetadata(std::ifstream& fd) {
+    LOG_D("Reading block metadata for term " << this->term);
+
+    fd.read((char*)&this->blockLastDocID, sizeof(this->blockLastDocID));
+    LOG_D("blockLastDocID: " << this->blockLastDocID);
+
+    fd.read((char*)&this->blockSize, sizeof(this->blockSize));
+    LOG_D("blockSize: " << this->blockSize);
+
+    this->docIDs.clear();
+    this->frequencies.clear();
+    this->currentIndex= 0;
+    this->numBlocksRead++;
+}
+
 void InvertedList::readBlock(std::ifstream& fd) {
-    LOG_D("Reading block");
-
-    uint32_t lastDocID;
-    fd.read((char*)&lastDocID, sizeof(lastDocID));
-    LOG_D("lastDocID: " << lastDocID);
-
-    uint32_t blockSize;
-    fd.read((char*)&blockSize, sizeof(blockSize));
-    LOG_D("blockSize: " << blockSize);
+    LOG_D("Reading block for term " << this->term);
 
     uint32_t docIDsSize;
     fd.read((char*)&docIDsSize, sizeof(docIDsSize));
@@ -274,15 +290,58 @@ std::vector<uint8_t> InvertedList::readByteStream(std::ifstream& fd, uint32_t nu
     return bytestream;
 }
 
+void InvertedList::open(std::string path, int offset) {
+    this->indexFileStream.open(path, std::ofstream::in | std::ofstream::binary);
+    this->indexFileStream.seekg(offset);
+    this->read(this->indexFileStream);
+}
+
+void InvertedList::close() {
+    if (this->indexFileStream.is_open()) {
+        this->indexFileStream.close();
+    }
+}
+
 doc_id InvertedList::nextGEQ(doc_id docID) {
-    if (this->currentIndex == this->numDocs)
+    // TODO:
+    // - Adapt termination criteria to number of blocks
+    // - Implement while loop to ignore as many blocks as possible
+    LOG_D("Current docID: " << docID);
+    LOG_D("Block last docID: " << this->blockLastDocID);
+
+    if (this->hasReadAllDocuments()) {
+        LOG_D("Reached end of inverted list");
         return MAX_DOC_ID;
+    }
 
     do {
-        if (this->currentIndex == this->numDocs) {
-            // LOG_D("End of inverted list");
-            this->currentDocID = MAX_DOC_ID;
-            break;
+        // Read next block when necessary
+        if (this->hasReadAllDocumentsInBlock()) {
+            LOG_D("Reading next block");
+
+            do {
+                // Stop skipping blocks when all blocks has been read
+                if (this->hasReadAllBlocks()) {
+                    LOG_D("Reached end of all blocks");
+                    this->currentDocID = MAX_DOC_ID;
+                    this->currentIndex = this->numDocs;
+                    return MAX_DOC_ID;
+                }
+
+                // Read next block metadata
+                this->readBlockMetadata(this->indexFileStream);
+
+                // Read next block when docID is inside and exit loop
+                // or skip next block
+                if (this->shouldReadBlock(docID)) {
+                    LOG_D("Reading block data");
+                    this->readBlock(this->indexFileStream);
+                    break;
+                } else {
+                    LOG_D("Skipping block");
+                    this->skipBlock(this->indexFileStream);
+                }
+            } while (true);
         }
 
         this->currentDocID = this->docIDs[this->currentIndex];
@@ -293,4 +352,24 @@ doc_id InvertedList::nextGEQ(doc_id docID) {
 
     // LOG_D("Returned doc ID: " << this->currentDocID);
     return this->currentDocID;
+}
+
+void InvertedList::skipBlock(std::ifstream& fd) {
+    fd.ignore(this->blockSize);
+}
+
+bool InvertedList::shouldReadBlock(doc_id docID) {
+    return docID <= this->blockLastDocID;
+}
+
+bool InvertedList::hasReadAllDocuments() {
+    return this->currentIndex == this->numDocs;
+}
+
+bool InvertedList::hasReadAllDocumentsInBlock() {
+    return this->currentIndex == this->docIDs.size();
+}
+
+bool InvertedList::hasReadAllBlocks() {
+    return this->numBlocksRead == this->numBlocks;
 }

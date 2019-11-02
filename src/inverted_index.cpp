@@ -99,12 +99,14 @@ list_p InvertedIndex::open(std::string term) {
 
     // Only read from file when term has documents as returned by the lexicon
     if (numDocs > 0) {
-        std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
-        fd.seekg(invertedListStart);
+        // std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
+        // fd.seekg(invertedListStart);
 
-        inverted_list->read(fd);
+        // inverted_list->read(fd);
 
-        fd.close();
+        // fd.close();
+
+        inverted_list->open(this->indexPath, invertedListStart);
     }
 
     this->openLists[inverted_list->getID()] = inverted_list;
