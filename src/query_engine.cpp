@@ -56,14 +56,14 @@ std::vector<std::tuple<doc_id, float, std::vector<int>>> QueryEngine::getDocumen
     auto document_table_size = this->document_table->size();
     std::vector<std::tuple<doc_id, float, std::vector<int>>> documents;
 
-    while (docID != INVERTED_LIST_END) {
+    while (docID != MAX_DOC_ID) {
         // Get next post from shortest list
         docID = this->inverted_index->next(lps[0], docID);
 
         // LOG_D("Doc ID: " << docID);
 
         // Exit when reaching list end
-        if (docID == INVERTED_LIST_END) {
+        if (docID == MAX_DOC_ID) {
             // LOG_D("Exiting due to list end");
             break;
         }

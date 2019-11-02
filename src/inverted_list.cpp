@@ -9,10 +9,10 @@ InvertedList::InvertedList(std::string term) : term(term) {
     LOG_D("Inverted list ID: " << this->id);
 }
 
-InvertedList::~InvertedList() {
-    if (this->block != NULL)
-        free(this->block);
-}
+// InvertedList::~InvertedList() {
+//     if (this->block != NULL)
+//         free(this->block);
+// }
 
 list_p InvertedList::getID() {
     return this->id;
@@ -38,67 +38,6 @@ void InvertedList::addPosting(doc_id docID, int frequency) {
     this->docIDs.push_back(docID);
     this->frequencies.push_back(frequency);
     this->numDocs++;
-}
-
-void InvertedList::read(std::ifstream& fd) {
-    this->readNumDocs(fd);
-    this->readBlock(fd);
-    LOG_D("Number of docs for term '" << term << "': " << this->numDocs);
-}
-
-void InvertedList::readNumDocs(std::ifstream& fd) {
-    fd.read((char*)&this->numDocs, sizeof(this->numDocs));
-}
-
-void InvertedList::readBlock(std::ifstream& fd) {
-    // 4 bytes for docID, 4 bytes for freqs
-    int blockSize = 2*this->numDocs*sizeof(uint32_t);
-    this->block = (unsigned char*)malloc(blockSize);
-
-    fd.read((char*)this->block, blockSize);
-}
-
-doc_id InvertedList::nextGEQ(doc_id docID) {
-    if (this->currentIndex == this->numDocs)
-        return INVERTED_LIST_END;
-
-    do {
-        if (this->currentIndex == this->numDocs) {
-            // LOG_D("End of inverted list");
-            this->currentDocID = INVERTED_LIST_END;
-            break;
-        }
-
-        // Uncompress data
-        // Document ID
-        auto docIDOffset = this->blockOffset;
-        uint32_t compressedDocID = this->block[docIDOffset]
-                                 | this->block[docIDOffset + 1] << 8
-                                 | this->block[docIDOffset + 2] << 16
-                                 | this->block[docIDOffset + 3] << 24;
-        uint32_t currentDocID = this->currentDocID + compressedDocID;
-        // LOG_D("Block - doc ID offset: " << docIDOffset);
-        // LOG_D("Block - doc ID: " << currentDocID);
-
-        // Frequency
-        auto freqOffset = this->blockOffset + this->numDocs*sizeof(uint32_t);
-        uint32_t currentFrequency = this->block[freqOffset]
-                                  | this->block[freqOffset + 1] << 8
-                                  | this->block[freqOffset + 2] << 16
-                                  | this->block[freqOffset + 3] << 24;
-        // LOG_D("Block - freq offset: " << freqOffset);
-        // LOG_D("Block - frequency: " << currentFrequency);
-
-        // Bookkeeping
-        this->currentDocID = currentDocID;
-        this->currentFrequency = currentFrequency;
-        this->blockOffset += sizeof(uint32_t);
-        this->currentIndex++;
-        // LOG_D("Current index: " << this->currentIndex);
-    } while (this->currentDocID < docID);
-
-    // LOG_D("Returned doc ID: " << this->currentDocID);
-    return this->currentDocID;
 }
 
 int InvertedList::write(std::ofstream& fd) {
@@ -139,4 +78,69 @@ int InvertedList::writeFrequencies(std::ofstream& fd) {
     }
 
     return bytes;
+}
+
+void InvertedList::read(std::ifstream& fd) {
+    this->readNumDocs(fd);
+    this->readDocumentIDs(fd);
+    this->readFrequencies(fd);
+    // this->readBlock(fd);
+    LOG_D("Number of docs for term '" << term << "': " << this->numDocs);
+}
+
+void InvertedList::readNumDocs(std::ifstream& fd) {
+    fd.read((char*)&this->numDocs, sizeof(this->numDocs));
+}
+
+void InvertedList::readDocumentIDs(std::ifstream& fd) {
+    uint8_t* bytes = (uint8_t*)malloc(this->numDocs*sizeof(uint32_t));
+    fd.read((char*)bytes, this->numDocs*sizeof(uint32_t));
+
+    this->docIDs.clear();
+    uint32_t docID = 0;
+    uint32_t compressedDocID = 0;
+
+    for (int i = 0; i < this->numDocs; i++) {
+        compressedDocID = bytes[i*sizeof(uint32_t)] | bytes[i*sizeof(uint32_t) + 1] << 8 | bytes[i*sizeof(uint32_t) + 2] << 16 | bytes[i*sizeof(uint32_t) + 3] << 24 ;
+        docID = docID + compressedDocID;
+        this->docIDs.push_back(docID);
+    }
+
+    free(bytes);
+}
+
+void InvertedList::readFrequencies(std::ifstream& fd) {
+    uint8_t* bytes = (uint8_t*)malloc(this->numDocs*sizeof(uint32_t));
+    fd.read((char*)bytes, this->numDocs*sizeof(uint32_t));
+
+    this->frequencies.clear();
+    uint32_t freq = 0;
+
+    for (int i = 0; i < this->numDocs; i++) {
+        freq = bytes[i*sizeof(uint32_t)] | bytes[i*sizeof(uint32_t) + 1] << 8 | bytes[i*sizeof(uint32_t) + 2] << 16 | bytes[i*sizeof(uint32_t) + 3] << 24 ;
+        this->frequencies.push_back(freq);
+    }
+
+    free(bytes);
+}
+
+doc_id InvertedList::nextGEQ(doc_id docID) {
+    if (this->currentIndex == this->numDocs)
+        return MAX_DOC_ID;
+
+    do {
+        if (this->currentIndex == this->numDocs) {
+            // LOG_D("End of inverted list");
+            this->currentDocID = MAX_DOC_ID;
+            break;
+        }
+
+        this->currentDocID = this->docIDs[this->currentIndex];
+        this->currentFrequency = this->frequencies[this->currentIndex];
+        this->currentIndex++;
+        // LOG_D("Current index: " << this->currentIndex);
+    } while (this->currentDocID < docID);
+
+    // LOG_D("Returned doc ID: " << this->currentDocID);
+    return this->currentDocID;
 }

@@ -13,14 +13,13 @@
 #include "types.hpp"
 
 // TODO: Find a more elegant way
-#define INVERTED_LIST_END 1000000000
+#define MAX_DOC_ID 1000000000
 
 class InvertedList {
   public:
     static list_p nextAvailableID;
 
     InvertedList(std::string term);
-    ~InvertedList();
 
     list_p getID();
     std::string getTerm();
@@ -30,30 +29,34 @@ class InvertedList {
 
     void addPosting(doc_id docID, int frequency);
 
+    int write(std::ofstream& fd);
     void read(std::ifstream& fd);
+
     doc_id nextGEQ(doc_id docID);
 
-    int write(std::ofstream& fd);
+  private:
     int writeNumberOfDocs(std::ofstream& fd);
     int writeDocumentIDs(std::ofstream& fd);
     int writeFrequencies(std::ofstream& fd);
 
-  private:
     void readNumDocs(std::ifstream& fd);
-    void readBlock(std::ifstream& fd);
+    void readDocumentIDs(std::ifstream& fd);
+    void readFrequencies(std::ifstream& fd);
+
+    uint32_t byteToUInt32(uint8_t* bytes, int addr);
 
     list_p id;
     std::string term;
+
+    // Attributes used when writing to file
     std::vector<doc_id> docIDs;
     std::vector<int> frequencies;
 
-    // Reading attributes
+    // Attributes used when reading from file
     uint32_t numDocs {0};
     int currentIndex {0};
     uint32_t currentDocID {0};
     int currentFrequency {0};
-    uint32_t blockOffset {0};
-    unsigned char* block {NULL};
 };
 
 #endif // INVERTED_LIST_HPP
