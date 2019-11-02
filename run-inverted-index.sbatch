@@ -17,4 +17,4 @@ if [ "$SLURM_JOBTMP" != "" ]; then
 fi
 
 cd /scratch/mvp307/inverted-index
-./run
+./index
