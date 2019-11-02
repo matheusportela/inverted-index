@@ -20,14 +20,15 @@ class InvertedList {
     ~InvertedList();
 
     list_p getID();
+    std::string getTerm();
     uint32_t getNumDocuments();
     doc_id getCurrentDocID();
     int getCurrentFrequency();
 
-    void read(std::string indexFilePath, uint64_t listStart);
+    void read(std::ifstream& fd);
     doc_id nextGEQ(doc_id docID);
 
-    void write();
+    int write(std::string indexFilePath, uint64_t listStart);
 
     static list_p nextAvailableID;
 
@@ -44,7 +45,6 @@ class InvertedList {
     uint32_t currentDocID {0};
     int currentFrequency {0};
 
-    uint64_t indexOffset;
     uint32_t blockOffset {0};
 
     unsigned char* block;

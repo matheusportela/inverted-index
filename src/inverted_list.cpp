@@ -18,6 +18,10 @@ list_p InvertedList::getID() {
     return this->id;
 }
 
+std::string InvertedList::getTerm() {
+    return this->term;
+}
+
 uint32_t InvertedList::getNumDocuments() {
     return this->numDocs;
 }
@@ -30,23 +34,14 @@ int InvertedList::getCurrentFrequency() {
     return this->currentFrequency;
 }
 
-void InvertedList::read(std::string indexFilePath, uint64_t listStart) {
-    std::ifstream fd(indexFilePath, std::ofstream::in | std::ofstream::binary);
-    fd.seekg(listStart);
-
-    this->indexOffset = listStart;
-
+void InvertedList::read(std::ifstream& fd) {
     this->readNumDocs(fd);
     this->readBlock(fd);
-
-    fd.close();
-
     LOG_D("Number of docs for term '" << term << "': " << this->numDocs);
 }
 
 void InvertedList::readNumDocs(std::ifstream& fd) {
     fd.read((char*)&this->numDocs, sizeof(this->numDocs));
-    this->indexOffset += sizeof(this->numDocs);
 }
 
 void InvertedList::readBlock(std::ifstream& fd) {
@@ -55,7 +50,6 @@ void InvertedList::readBlock(std::ifstream& fd) {
     this->block = (unsigned char*)malloc(blockSize);
 
     fd.read((char*)this->block, blockSize);
-    this->indexOffset += blockSize;
 }
 
 doc_id InvertedList::nextGEQ(doc_id docID) {
@@ -92,7 +86,6 @@ doc_id InvertedList::nextGEQ(doc_id docID) {
         // Bookkeeping
         this->currentDocID = currentDocID;
         this->currentFrequency = currentFrequency;
-        this->indexOffset += sizeof(uint32_t);
         this->blockOffset += sizeof(uint32_t);
         this->currentIndex++;
         // LOG_D("Current index: " << this->currentIndex);
@@ -102,6 +95,6 @@ doc_id InvertedList::nextGEQ(doc_id docID) {
     return this->currentDocID;
 }
 
-void InvertedList::write() {
-
+int InvertedList::write(std::string indexFilePath, uint64_t listStart) {
+    return 0;
 }
