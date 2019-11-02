@@ -127,61 +127,6 @@ void InvertedIndex::load() {
     this->lexicon.load(this->lexiconPath);
 }
 
-std::vector<std::pair<doc_id, int>> InvertedIndex::search(std::string term) {
-    auto [invertedListStart, invertedListEnd, numDocs] = this->lexicon.getMetadata(term);
-
-    std::vector<std::pair<doc_id, int>> result;
-
-    if (numDocs > 0)
-        result = this->fetchInvertedList(invertedListStart);
-
-    return result;
-}
-
-std::vector<std::pair<doc_id, int>> InvertedIndex::fetchInvertedList(uint64_t listStart) {
-    std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
-
-    // Go to inverted list start
-    fd.seekg(listStart);
-
-    // Read number of docs
-    uint32_t numDocs;
-    fd.read((char*)&numDocs, sizeof(numDocs));
-
-    // Read document IDs
-    std::vector<doc_id> documents;
-    uint32_t docID = 0;
-    uint32_t compressedDocID;
-
-    for (int i = 0; i < numDocs; i++) {
-        fd.read((char*)&compressedDocID, sizeof(compressedDocID));
-
-        // Uncompress by accumulating all previous document IDs
-        docID += compressedDocID;
-
-        documents.push_back(docID);
-    }
-
-    // Read frequencies
-    std::vector<int> frequencies;
-    uint32_t frequency;
-
-    for (int i = 0; i < numDocs; i++) {
-        fd.read((char*)&frequency, sizeof(frequency));
-
-        frequencies.push_back(frequency);
-    }
-
-    fd.close();
-
-    std::vector<std::pair<doc_id, int>> result;
-
-    for (int i = 0; i < numDocs; i++)
-        result.push_back(std::make_pair(documents[i], frequencies[i]));
-
-    return result;
-}
-
 list_p InvertedIndex::open(std::string term) {
     auto [invertedListStart, invertedListEnd, numDocs] = this->lexicon.getMetadata(term);
     auto inverted_list = std::make_shared<InvertedList>(term);

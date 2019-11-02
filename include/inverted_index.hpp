@@ -83,11 +83,6 @@ class InvertedIndex {
     // lexicon, from the directory.
     void load();
 
-    // Search for term in lexicon and retrieve inverted list from index file.
-    // @param term - Term to be searched
-    // @result Vector containing pairs of (docID, frequency)
-    std::vector<std::pair<doc_id, int>> search(std::string term);
-
     list_p open(std::string term);
     void close(list_p lp);
     doc_id next(list_p lp, doc_id docID);
@@ -132,11 +127,6 @@ class InvertedIndex {
     void write(char* addr, unsigned int size);
 
     std::shared_ptr<InvertedList> getOpenInvertedList(list_p lp);
-
-    // Fetch inverted list from the inverted index file
-    // @param listStart - Address of the inverted list start in the inverted
-    //      index file.
-    std::vector<std::pair<doc_id, int>> fetchInvertedList(uint64_t listStart);
 
     // File stream to read postings
     std::ifstream postingsFileStream;
