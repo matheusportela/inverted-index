@@ -15,7 +15,7 @@
 
 // TODO: Find a more elegant way
 #define MAX_DOC_ID 1000000000
-#define BLOCK_SIZE 4 // postings
+#define BLOCK_SIZE 128 // number of postings per block
 
 typedef std::pair<doc_id, int> posting_t;
 typedef std::vector<posting_t> block_t;
