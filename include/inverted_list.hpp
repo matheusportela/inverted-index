@@ -39,7 +39,7 @@ class InvertedList {
     list_p id;
     std::string term;
 
-    uint32_t numDocs;
+    uint32_t numDocs {0};
 
     int currentIndex {0};
     uint32_t currentDocID {0};
@@ -47,7 +47,7 @@ class InvertedList {
 
     uint32_t blockOffset {0};
 
-    unsigned char* block;
+    unsigned char* block {NULL};
 };
 
 #endif // INVERTED_LIST_HPP

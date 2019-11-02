@@ -183,14 +183,21 @@ std::vector<std::pair<doc_id, int>> InvertedIndex::fetchInvertedList(uint64_t li
 }
 
 list_p InvertedIndex::open(std::string term) {
-    auto [invertedListStart, _invertedListEnd, _numDocs] = this->lexicon.getMetadata(term);
-    std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
-    fd.seekg(invertedListStart);
-
+    auto [invertedListStart, invertedListEnd, numDocs] = this->lexicon.getMetadata(term);
     auto inverted_list = std::make_shared<InvertedList>(term);
-    inverted_list->read(fd);
 
-    fd.close();
+    if (numDocs > 0) {
+        std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
+        fd.seekg(invertedListStart);
+
+        LOG_D("Inverted list start: " << invertedListStart);
+        LOG_D("Inverted list end: " << invertedListEnd);
+        LOG_D("Inverted list numDocs: " << numDocs);
+
+        inverted_list->read(fd);
+
+        fd.close();
+    }
 
     this->openLists[inverted_list->getID()] = inverted_list;
     return inverted_list->getID();
