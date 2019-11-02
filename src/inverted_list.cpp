@@ -80,9 +80,14 @@ int InvertedList::writeBlock(std::ofstream& fd, block_t block) {
         frequencies.push_back(frequency);
     }
 
+    std::vector<uint8_t> compressedDocIDs = this->compressDocumentIDs(docIDs);
+    std::vector<uint8_t> compressedFrequencies = this->compressFrequencies(frequencies);
+
     uint32_t lastDocID = block[numDocs - 1].first;
-    uint32_t docIDsSize = docIDs.size()*sizeof(uint32_t);
-    uint32_t freqsSize = frequencies.size()*sizeof(uint32_t);
+    // uint32_t docIDsSize = docIDs.size()*sizeof(uint32_t);
+    // uint32_t freqsSize = frequencies.size()*sizeof(uint32_t);
+    uint32_t docIDsSize = compressedDocIDs.size()*sizeof(uint8_t);
+    uint32_t freqsSize = compressedFrequencies.size()*sizeof(uint8_t);
     uint32_t blockSize = sizeof(docIDsSize) + docIDsSize
                        + sizeof(freqsSize) + freqsSize;
 
@@ -95,14 +100,42 @@ int InvertedList::writeBlock(std::ofstream& fd, block_t block) {
     fd.write((char*)&docIDsSize, sizeof(docIDsSize));
     bytes += sizeof(docIDsSize);
 
-    bytes += this->writeDocumentIDs(fd, docIDs);
+    // bytes += this->writeDocumentIDs(fd, docIDs);
+    bytes += this->writeByteStream(fd, compressedDocIDs);
 
     fd.write((char*)&freqsSize, sizeof(freqsSize));
     bytes += sizeof(freqsSize);
 
-    bytes += this->writeFrequencies(fd, frequencies);
+    // bytes += this->writeFrequencies(fd, frequencies);
+    bytes += this->writeByteStream(fd, compressedFrequencies);
 
     return bytes;
+}
+
+std::vector<uint8_t> InvertedList::compressDocumentIDs(std::vector<doc_id> docIDs) {
+    std::vector<uint32_t> numbers;
+
+    doc_id previousDocID = 0;
+    for (auto docID : docIDs) {
+        // Write docID as differences for later compression
+        uint32_t diffDocID = docID - previousDocID;
+        previousDocID = docID;
+
+        numbers.push_back(diffDocID);
+    }
+
+    return Compression::encode(numbers);
+}
+
+std::vector<uint8_t> InvertedList::compressFrequencies(std::vector<int> frequencies) {
+    std::vector<uint32_t> numbers;
+
+    for (auto frequency : frequencies) {
+        uint32_t freq = frequency;
+        numbers.push_back(freq);
+    }
+
+    return Compression::encode(numbers);
 }
 
 std::vector<block_t> InvertedList::splitBlocks() {
@@ -146,6 +179,17 @@ int InvertedList::writeFrequencies(std::ofstream& fd, std::vector<int> frequenci
         uint32_t freq = frequency;
         fd.write((char*)&freq, sizeof(freq));
         bytes += sizeof(freq);
+    }
+
+    return bytes;
+}
+
+int InvertedList::writeByteStream(std::ofstream& fd, std::vector<uint8_t> bytestream) {
+    int bytes = 0;
+
+    for (auto b : bytestream) {
+        fd.write((char*)&b, sizeof(b));
+        bytes += sizeof(b);
     }
 
     return bytes;
@@ -196,37 +240,38 @@ void InvertedList::readBlock(std::ifstream& fd) {
 }
 
 void InvertedList::readDocumentIDs(std::ifstream& fd, uint32_t numBytes) {
-    uint8_t* bytes = (uint8_t*)malloc(numBytes);
-    fd.read((char*)bytes, numBytes);
-
-    LOG_D("num docs in block: " << (numBytes/sizeof(uint32_t)));
+    auto bytestream = this->readByteStream(fd, numBytes);
+    auto diffDocIDs = Compression::decode(bytestream);
 
     uint32_t docID = 0;
-    uint32_t compressedDocID = 0;
-
-    for (int i = 0; i < numBytes/sizeof(uint32_t); i++) {
-        compressedDocID = bytes[i*sizeof(uint32_t)] | bytes[i*sizeof(uint32_t) + 1] << 8 | bytes[i*sizeof(uint32_t) + 2] << 16 | bytes[i*sizeof(uint32_t) + 3] << 24 ;
-        docID = docID + compressedDocID;
-        this->docIDs.push_back(docID);
+    for (auto diffDocID : diffDocIDs) {
+        docID = docID + diffDocID;
+        this->docIDs.push_back((int)docID);
     }
-
-    free(bytes);
 }
 
 void InvertedList::readFrequencies(std::ifstream& fd, uint32_t numBytes) {
+    auto bytestream = this->readByteStream(fd, numBytes);
+    auto frequencies = Compression::decode(bytestream);
+
+    for (auto frequency : frequencies) {
+        this->frequencies.push_back(frequency);
+    }
+}
+
+std::vector<uint8_t> InvertedList::readByteStream(std::ifstream& fd, uint32_t numBytes) {
+    std::vector<uint8_t> bytestream;
+
     uint8_t* bytes = (uint8_t*)malloc(numBytes);
     fd.read((char*)bytes, numBytes);
 
-    LOG_D("num freqs in block: " << (numBytes/sizeof(uint32_t)));
-
-    uint32_t freq = 0;
-
-    for (int i = 0; i < numBytes/sizeof(uint32_t); i++) {
-        freq = bytes[i*sizeof(uint32_t)] | bytes[i*sizeof(uint32_t) + 1] << 8 | bytes[i*sizeof(uint32_t) + 2] << 16 | bytes[i*sizeof(uint32_t) + 3] << 24 ;
-        this->frequencies.push_back(freq);
+    for (int i = 0; i < numBytes; i++) {
+        bytestream.push_back(bytes[i]);
     }
 
     free(bytes);
+
+    return bytestream;
 }
 
 doc_id InvertedList::nextGEQ(doc_id docID) {

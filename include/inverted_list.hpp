@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "compression.hpp"
 #include "log.hpp"
 #include "types.hpp"
 
@@ -42,17 +43,20 @@ class InvertedList {
     int writeMetadata(std::ofstream& fd, std::vector<block_t> blocks);
     int writeBlocks(std::ofstream& fd, std::vector<block_t> blocks);
     int writeBlock(std::ofstream& fd, block_t block);
+    int writeByteStream(std::ofstream& fd, std::vector<uint8_t> bytestream);
     std::vector<block_t> splitBlocks();
     int writeDocumentIDs(std::ofstream& fd, std::vector<doc_id> docIDs);
     int writeFrequencies(std::ofstream& fd, std::vector<int> frequencies);
+
+    std::vector<uint8_t> compressDocumentIDs(std::vector<doc_id> docIDs);
+    std::vector<uint8_t> compressFrequencies(std::vector<int> frequencies);
 
     void readMetadata(std::ifstream& fd);
     void readBlocks(std::ifstream& fd);
     void readBlock(std::ifstream& fd);
     void readDocumentIDs(std::ifstream& fd, uint32_t numBytes);
     void readFrequencies(std::ifstream& fd, uint32_t numBytes);
-
-    uint32_t byteToUInt32(uint8_t* bytes, int addr);
+    std::vector<uint8_t> readByteStream(std::ifstream& fd, uint32_t numBytes);
 
     list_p id;
     std::string term;
