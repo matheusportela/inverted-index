@@ -8,6 +8,8 @@
 #ifndef COMPRESSION_HPP
 #define COMPRESSION_HPP
 
+#include <algorithm>
+#include <cstdint>
 #include <vector>
 
 class Compression {
