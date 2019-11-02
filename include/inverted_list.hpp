@@ -14,6 +14,10 @@
 
 // TODO: Find a more elegant way
 #define MAX_DOC_ID 1000000000
+#define BLOCK_SIZE 4 // postings
+
+typedef std::pair<doc_id, int> posting_t;
+typedef std::vector<posting_t> block_t;
 
 class InvertedList {
   public:
@@ -35,13 +39,18 @@ class InvertedList {
     doc_id nextGEQ(doc_id docID);
 
   private:
-    int writeNumberOfDocs(std::ofstream& fd);
-    int writeDocumentIDs(std::ofstream& fd);
-    int writeFrequencies(std::ofstream& fd);
+    int writeMetadata(std::ofstream& fd, std::vector<block_t> blocks);
+    int writeBlocks(std::ofstream& fd, std::vector<block_t> blocks);
+    int writeBlock(std::ofstream& fd, block_t block);
+    std::vector<block_t> splitBlocks();
+    int writeDocumentIDs(std::ofstream& fd, std::vector<doc_id> docIDs);
+    int writeFrequencies(std::ofstream& fd, std::vector<int> frequencies);
 
-    void readNumDocs(std::ifstream& fd);
-    void readDocumentIDs(std::ifstream& fd);
-    void readFrequencies(std::ifstream& fd);
+    void readMetadata(std::ifstream& fd);
+    void readBlocks(std::ifstream& fd);
+    void readBlock(std::ifstream& fd);
+    void readDocumentIDs(std::ifstream& fd, uint32_t numBytes);
+    void readFrequencies(std::ifstream& fd, uint32_t numBytes);
 
     uint32_t byteToUInt32(uint8_t* bytes, int addr);
 
@@ -52,8 +61,11 @@ class InvertedList {
     std::vector<doc_id> docIDs;
     std::vector<int> frequencies;
 
+    std::vector<posting_t> postings;
+
     // Attributes used when reading from file
     uint32_t numDocs {0};
+    uint32_t numBlocks {0};
     int currentIndex {0};
     uint32_t currentDocID {0};
     int currentFrequency {0};
