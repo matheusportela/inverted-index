@@ -183,136 +183,35 @@ std::vector<std::pair<doc_id, int>> InvertedIndex::fetchInvertedList(uint64_t li
 }
 
 list_p InvertedIndex::open(std::string term) {
-    list_p lp = this->next_list_pointer;
-    this->next_list_pointer++;
-
     auto [invertedListStart, _invertedListEnd, _numDocs] = this->lexicon.getMetadata(term);
-    std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
-    fd.seekg(invertedListStart);
-
-    // Read number of docs
-    uint32_t numDocs;
-    fd.read((char*)&numDocs, sizeof(numDocs));
-    LOG_D("Number of docs for term '" << term << "': " << numDocs);
-
-    this->list_pointer_table[lp] = {
-        .indexOffset=invertedListStart + sizeof(numDocs),
-        .numDocs=numDocs,
-        .currentIndex=0,
-        .currentDocID=0,
-        .currentFrequency=0,
-        .blockOffset=0,
-    };
-
-    fd.close();
-
-    this->readBlock(lp);
-
-    return lp;
+    auto inverted_list = std::make_shared<InvertedList>(term);
+    inverted_list->read(this->indexPath, invertedListStart);
+    this->openLists[inverted_list->getID()] = inverted_list;
+    return inverted_list->getID();
 }
 
 void InvertedIndex::close(list_p lp) {
     this->assertListIsOpen(lp);
-
-    auto ld = this->list_pointer_table[lp];
-    if (ld.block != NULL)
-        free(ld.block);
-
-    this->list_pointer_table.erase(lp);
+    this->openLists.erase(lp);
 }
 
 doc_id InvertedIndex::next(list_p lp, doc_id docID) {
     this->assertListIsOpen(lp);
-
-    auto ld = this->list_pointer_table[lp];
-
-    if (ld.currentIndex == ld.numDocs)
-        return INVERTED_LIST_END;
-
-    do {
-        if (ld.currentIndex == ld.numDocs) {
-            // LOG_D("End of inverted list");
-            ld.currentDocID = INVERTED_LIST_END;
-            break;
-        }
-
-        // Uncompress data
-        // Document ID
-        auto docIDOffset = ld.blockOffset;
-        uint32_t compressedDocID = ld.block[docIDOffset]
-                                 | ld.block[docIDOffset + 1] << 8
-                                 | ld.block[docIDOffset + 2] << 16
-                                 | ld.block[docIDOffset + 3] << 24;
-        uint32_t currentDocID = ld.currentDocID + compressedDocID;
-        // LOG_D("Block - doc ID offset: " << docIDOffset);
-        // LOG_D("Block - doc ID: " << currentDocID);
-
-        // Frequency
-        auto freqOffset = ld.blockOffset + ld.numDocs*sizeof(uint32_t);
-        uint32_t currentFrequency = ld.block[freqOffset]
-                                  | ld.block[freqOffset + 1] << 8
-                                  | ld.block[freqOffset + 2] << 16
-                                  | ld.block[freqOffset + 3] << 24;
-        // LOG_D("Block - freq offset: " << freqOffset);
-        // LOG_D("Block - frequency: " << currentFrequency);
-
-        // Bookkeeping
-        ld.currentDocID = currentDocID;
-        ld.currentFrequency = currentFrequency;
-        ld.indexOffset += sizeof(uint32_t);
-        ld.blockOffset += sizeof(uint32_t);
-        ld.currentIndex++;
-        // LOG_D("Current index: " << ld.currentIndex);
-    } while (ld.currentDocID < docID);
-
-    // Update table
-    this->list_pointer_table[lp] = ld;
-
-    // LOG_D("Returned doc ID: " << ld.currentDocID);
-    return ld.currentDocID;
-}
-
-bool InvertedIndex::end(list_p lp) {
-    this->assertListIsOpen(lp);
-
-    auto ld = this->list_pointer_table[lp];
-    return ld.currentDocID == INVERTED_LIST_END;
-}
-
-void InvertedIndex::readBlock(list_p lp) {
-    this->assertListIsOpen(lp);
-
-    auto ld = this->list_pointer_table[lp];
-
-    // 4 bytes for docID, 4 bytes for freqs
-    int block_size = 2*ld.numDocs*sizeof(uint32_t);
-    ld.block = (unsigned char*)malloc(block_size);
-
-    std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
-    fd.seekg(ld.indexOffset);
-    fd.read((char*)ld.block, block_size);
-    fd.close();
-
-    // Update table
-    this->list_pointer_table[lp] = ld;
+    return this->openLists[lp]->nextGEQ(docID);
 }
 
 int InvertedIndex::getFrequency(list_p lp) {
     this->assertListIsOpen(lp);
-
-    auto ld = this->list_pointer_table[lp];
-    return ld.currentFrequency;
+    return this->openLists[lp]->getCurrentFrequency();
 }
 
 int InvertedIndex::getNumDocuments(list_p lp) {
     this->assertListIsOpen(lp);
-
-    auto ld = this->list_pointer_table[lp];
-    return ld.numDocs;
+    return this->openLists[lp]->getNumDocuments();
 }
 
 void InvertedIndex::assertListIsOpen(list_p lp) {
-    if (this->list_pointer_table.find(lp) == this->list_pointer_table.end()) {
+    if (this->openLists.find(lp) == this->openLists.end()) {
         LOG_E("List " << lp << "is not open");
         exit(1);
     }

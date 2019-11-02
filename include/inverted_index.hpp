@@ -53,11 +53,10 @@
 #include <utility>
 #include <vector>
 
+#include "inverted_list.hpp"
 #include "lexicon.hpp"
 #include "log.hpp"
 #include "types.hpp"
-
-#define INVERTED_LIST_END 1000000000
 
 struct list_descriptor {
     uint64_t indexOffset;
@@ -92,8 +91,6 @@ class InvertedIndex {
     list_p open(std::string term);
     void close(list_p lp);
     doc_id next(list_p lp, doc_id docID);
-    bool end(list_p lp);
-    void readBlock(list_p lp);
     int getFrequency(list_p lp);
     int getNumDocuments(list_p lp);
 
@@ -171,8 +168,7 @@ class InvertedIndex {
     // Lexicon used when indexing and searching
     Lexicon lexicon;
 
-    list_p next_list_pointer {0};
-    std::map<list_p, struct list_descriptor> list_pointer_table;
+    std::map<list_p, std::shared_ptr<InvertedList>> openLists;
 };
 
 #endif // INVERTED_INDEX_HPP
