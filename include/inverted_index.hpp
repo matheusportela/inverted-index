@@ -143,21 +143,13 @@ class InvertedIndex {
     // File path to read/write lexicon
     std::string lexiconPath;
 
-    // Current term when indexing postings
-    std::string currentTerm;
-
-    // Current document IDs when indexing postings
-    std::vector<doc_id> currentDocIDs;
-
-    // Current frequencies when indexing postings
-    std::vector<int> currentFrequencies;
-
     // Current inverted index file offset when indexing postings
     uint64_t currentIndexOffset {0};
 
     // Lexicon used when indexing and searching
     Lexicon lexicon;
 
+    std::shared_ptr<InvertedList> currentInvertedList;
     std::map<list_p, std::shared_ptr<InvertedList>> openLists;
 };
 

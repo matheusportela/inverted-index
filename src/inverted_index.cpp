@@ -34,6 +34,7 @@ void InvertedIndex::indexPostings() {
         this->processPosting(posting);
     }
 
+    // Flush last processed inverted list
     this->flushInvertedList();
 
     this->postingsFileStream.close();
@@ -42,85 +43,50 @@ void InvertedIndex::indexPostings() {
 std::tuple<std::string, doc_id, int> InvertedIndex::readPosting() {
     std::string term;
     doc_id docID;
-    int count;
+    int frequency;
 
     this->postingsFileStream >> term;
     this->postingsFileStream >> docID;
-    this->postingsFileStream >> count;
+    this->postingsFileStream >> frequency;
 
-    return std::make_tuple(term, docID, count);
+    return std::make_tuple(term, docID, frequency);
 }
 
 void InvertedIndex::processPosting(std::tuple<std::string, doc_id, int> posting) {
-    auto [term, docID, count] = posting;
+    auto [term, docID, frequency] = posting;
 
-    if (this->isNewTerm(term)) {
+    if (this->currentInvertedList == nullptr) {
+        this->createInvertedList(term);
+    } else if (this->currentInvertedList->getTerm() != term) {
         this->flushInvertedList();
         this->createInvertedList(term);
     }
 
-    this->currentDocIDs.push_back(docID);
-    this->currentFrequencies.push_back(count);
+    this->currentInvertedList->addPosting(docID, frequency);
 }
 
 bool InvertedIndex::isNewTerm(std::string term) {
-    return term != this->currentTerm;
+    return this->currentInvertedList == nullptr || this->currentInvertedList->getTerm() != term;
 }
 
 void InvertedIndex::createInvertedList(std::string term) {
-    this->currentTerm = term;
-    this->currentDocIDs.clear();
-    this->currentFrequencies.clear();
+    this->currentInvertedList = std::make_shared<InvertedList>(term);
 }
 
 void InvertedIndex::flushInvertedList() {
-    uint32_t numDocs = this->currentDocIDs.size();
-
-    // Skip flushing if there are no postings.
-    // This may happen in the very first flush, when a new term is found but
-    // no posting is in memory yet.
-    if (numDocs == 0)
-        return;
+    uint32_t numDocs = this->currentInvertedList->getNumDocuments();
 
     // Byte offset where inverted list starts for the current term
     uint64_t listStart = this->currentIndexOffset;
 
-    this->writeNumberOfDocs(numDocs);
-    this->writeDocumentIDs();
-    this->writeFrequencies();
+    // Write inverted list to file and update offset
+    this->currentIndexOffset += this->currentInvertedList->write(this->indexFileStream);
 
     // Byte offset where inverted list ends for the current term
     uint64_t listEnd = this->currentIndexOffset;
 
     // Add flushed inverted list to lexicon
-    this->lexicon.addTermMetadata(this->currentTerm, listStart, listEnd, numDocs);
-}
-
-void InvertedIndex::writeNumberOfDocs(uint32_t numDocs) {
-    this->write((char*)&numDocs, sizeof(numDocs));
-}
-
-void InvertedIndex::writeDocumentIDs() {
-    int previousDocID = 0;
-    for (auto docID : this->currentDocIDs) {
-        // Write docID as differences for later compression
-        uint32_t compressedDocID = docID - previousDocID;
-        previousDocID = docID;
-
-        this->write((char*)&compressedDocID, sizeof(compressedDocID));
-    }
-}
-
-void InvertedIndex::writeFrequencies() {
-    for (auto frequency : this->currentFrequencies) {
-        uint32_t freq = frequency;
-        this->write((char*)&freq, sizeof(freq));
-    }
-}
-
-void InvertedIndex::write(char* addr, unsigned int size) {
-    this->indexFileStream.write(addr, size);
-    this->currentIndexOffset += size;
+    this->lexicon.addTermMetadata(this->currentInvertedList->getTerm(), listStart, listEnd, numDocs);
 }
 
 void InvertedIndex::load() {
@@ -131,13 +97,10 @@ list_p InvertedIndex::open(std::string term) {
     auto [invertedListStart, invertedListEnd, numDocs] = this->lexicon.getMetadata(term);
     auto inverted_list = std::make_shared<InvertedList>(term);
 
+    // Only read from file when term has documents as returned by the lexicon
     if (numDocs > 0) {
         std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
         fd.seekg(invertedListStart);
-
-        LOG_D("Inverted list start: " << invertedListStart);
-        LOG_D("Inverted list end: " << invertedListEnd);
-        LOG_D("Inverted list numDocs: " << numDocs);
 
         inverted_list->read(fd);
 

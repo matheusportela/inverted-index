@@ -34,6 +34,12 @@ int InvertedList::getCurrentFrequency() {
     return this->currentFrequency;
 }
 
+void InvertedList::addPosting(doc_id docID, int frequency) {
+    this->docIDs.push_back(docID);
+    this->frequencies.push_back(frequency);
+    this->numDocs++;
+}
+
 void InvertedList::read(std::ifstream& fd) {
     this->readNumDocs(fd);
     this->readBlock(fd);
@@ -95,6 +101,42 @@ doc_id InvertedList::nextGEQ(doc_id docID) {
     return this->currentDocID;
 }
 
-int InvertedList::write(std::string indexFilePath, uint64_t listStart) {
-    return 0;
+int InvertedList::write(std::ofstream& fd) {
+    int bytes = 0;
+    bytes += this->writeNumberOfDocs(fd);
+    bytes += this->writeDocumentIDs(fd);
+    bytes += this->writeFrequencies(fd);
+    return bytes;
+}
+
+int InvertedList::writeNumberOfDocs(std::ofstream& fd) {
+    fd.write((char*)&this->numDocs, sizeof(this->numDocs));
+    return sizeof(this->numDocs);
+}
+
+int InvertedList::writeDocumentIDs(std::ofstream& fd) {
+    int bytes = 0;
+    int previousDocID = 0;
+    for (auto docID : this->docIDs) {
+        // Write docID as differences for later compression
+        uint32_t compressedDocID = docID - previousDocID;
+        previousDocID = docID;
+
+        fd.write((char*)&compressedDocID, sizeof(compressedDocID));
+        bytes += sizeof(compressedDocID);
+    }
+
+    return bytes;
+}
+
+int InvertedList::writeFrequencies(std::ofstream& fd) {
+    int bytes = 0;
+
+    for (auto frequency : this->frequencies) {
+        uint32_t freq = frequency;
+        fd.write((char*)&freq, sizeof(freq));
+        bytes += sizeof(freq);
+    }
+
+    return bytes;
 }
