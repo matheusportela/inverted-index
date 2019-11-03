@@ -234,7 +234,7 @@ void InvertedList::readDocumentIDs(std::ifstream& fd, uint32_t numBytes) {
         // this->docIDs.push_back((int)docID);
         this->blockDocIDs.push((int)docID);
     }
-    LOG_D("Read doc IDs");
+    LOG_D("Read doc IDs: " << this->blockDocIDs.size());
 }
 
 void InvertedList::readFrequencies(std::ifstream& fd, uint32_t numBytes) {
@@ -246,7 +246,7 @@ void InvertedList::readFrequencies(std::ifstream& fd, uint32_t numBytes) {
         // this->frequencies.push_back(frequency);
         this->blockFrequencies.push(frequency);
     }
-    LOG_D("Read frequencies");
+    LOG_D("Read frequencies" << this->blockFrequencies.size());
 }
 
 uint32_t InvertedList::readUInt32(std::ifstream& fd) {
