@@ -11,8 +11,6 @@
             the inverted list for the term starts
         - listEnd: Byte offset from the start of the inverted index file where
             the inverted list for the term ends
-            as uint32
-            one stored as uint32
         - numDocs: Number of documents containing the term
 
     A lexicon is stored in disk as term, listStart, listEnd, and numDocs order,

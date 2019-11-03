@@ -5,8 +5,10 @@
 #ifndef TYPES_HPP
 #define TYPES_HPP
 
+#include <cstdint>
+
 // Document ID
-typedef int doc_id;
+typedef uint32_t doc_id;
 
 // List pointer
 typedef int list_p;
