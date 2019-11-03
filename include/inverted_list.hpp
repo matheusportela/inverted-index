@@ -85,7 +85,7 @@ class InvertedList {
     uint32_t currentDocID {0};
     int currentFrequency {0};
 
-    int currentIndex {0};
+    // int currentIndex {0};
     int numBlocksRead {0};
 
     std::ifstream indexFileStream;

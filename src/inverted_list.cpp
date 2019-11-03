@@ -202,7 +202,8 @@ void InvertedList::readBlockMetadata(std::ifstream& fd) {
 
     this->docIDs.clear();
     this->frequencies.clear();
-    this->currentIndex = 0;
+
+    // this->currentIndex = 0;
     this->numBlocksRead++;
     LOG_D("Read block metadata for term " << this->term);
 }
@@ -230,8 +231,8 @@ void InvertedList::readDocumentIDs(std::ifstream& fd, uint32_t numBytes) {
     uint32_t docID = 0;
     for (auto diffDocID : diffDocIDs) {
         docID = docID + diffDocID;
-        this->docIDs.push_back((int)docID);
-        // this->blockDocIDs.push((int)docID);
+        // this->docIDs.push_back((int)docID);
+        this->blockDocIDs.push((int)docID);
     }
     LOG_D("Read doc IDs");
 }
@@ -242,8 +243,8 @@ void InvertedList::readFrequencies(std::ifstream& fd, uint32_t numBytes) {
     auto frequencies = Compression::decode(bytestream);
 
     for (auto frequency : frequencies) {
-        this->frequencies.push_back(frequency);
-        // this->blockFrequencies.push(frequency);
+        // this->frequencies.push_back(frequency);
+        this->blockFrequencies.push(frequency);
     }
     LOG_D("Read frequencies");
 }
@@ -298,7 +299,7 @@ doc_id InvertedList::nextGEQ(doc_id docID) {
     if (this->hasReadAllDocuments()) {
         LOG_D("Reached end of inverted list");
         this->currentDocID = MAX_DOC_ID;
-        this->currentIndex = this->numDocs;
+        // this->currentIndex = this->numDocs;
         return MAX_DOC_ID;
     }
 
@@ -312,7 +313,7 @@ doc_id InvertedList::nextGEQ(doc_id docID) {
                 if (this->hasReadAllBlocks()) {
                     LOG_D("Reached end of all blocks");
                     this->currentDocID = MAX_DOC_ID;
-                    this->currentIndex = this->numDocs;
+                    // this->currentIndex = this->numDocs;
                     return MAX_DOC_ID;
                 }
 
@@ -332,16 +333,16 @@ doc_id InvertedList::nextGEQ(doc_id docID) {
             }
         }
 
-        // this->currentDocID = this->blockDocIDs.front();
-        // this->currentFrequency = this->blockFrequencies.front();
+        this->currentDocID = this->blockDocIDs.front();
+        this->currentFrequency = this->blockFrequencies.front();
 
-        // this->blockDocIDs.pop();
-        // this->blockFrequencies.pop();
+        this->blockDocIDs.pop();
+        this->blockFrequencies.pop();
 
-        this->currentDocID = this->docIDs[this->currentIndex];
-        this->currentFrequency = this->frequencies[this->currentIndex];
-        this->currentIndex++;
-        LOG_D("Current index: " << this->currentIndex);
+        // this->currentDocID = this->docIDs[this->currentIndex];
+        // this->currentFrequency = this->frequencies[this->currentIndex];
+        // this->currentIndex++;
+        // LOG_D("Current index: " << this->currentIndex);
     } while (this->currentDocID < docID);
 
     LOG_D("Returned doc ID: " << this->currentDocID);
@@ -357,13 +358,13 @@ bool InvertedList::shouldReadBlock(doc_id docID) {
 }
 
 bool InvertedList::hasReadAllDocuments() {
-    return this->currentIndex == this->numDocs;
-    // return this->hasReadAllBlocks() && this->hasReadAllDocumentsInBlock();
+    // return this->currentIndex == this->numDocs;
+    return this->hasReadAllBlocks() && this->hasReadAllDocumentsInBlock();
 }
 
 bool InvertedList::hasReadAllDocumentsInBlock() {
-    return this->currentIndex == this->docIDs.size();
-    // return this->blockDocIDs.empty();
+    // return this->currentIndex == this->docIDs.size();
+    return this->blockDocIDs.empty();
 }
 
 bool InvertedList::hasReadAllBlocks() {
