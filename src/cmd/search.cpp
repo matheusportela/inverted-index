@@ -11,27 +11,6 @@
 int main() {
     LOG_SET_DEBUG();
 
-    uint64_t start = 2778428808;
-    uint64_t end = 2778435800;
-    auto bytes = end - start;
-    std::ifstream fd;
-    fd.open("../tmp/index.txt", std::ofstream::in | std::ofstream::binary);
-    fd.seekg(start);
-
-    uint8_t buffer[bytes];
-    fd.read((char*)buffer, bytes);
-
-    fd.close();
-
-    for (int i = 0; i < bytes; i++) {
-        auto byte = buffer[i];
-        std::cout << (int)byte << " ";
-    }
-    std::cout << std::endl;
-
-    return 0;
-
-
     const std::string path = "../tmp";
 
     LOG_I("Initializing query engine");
