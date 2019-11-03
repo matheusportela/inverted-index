@@ -106,6 +106,7 @@ list_p InvertedIndex::open(std::string term) {
 
         // fd.close();
 
+        LOG_D("Number of docs for term " << term << ": " << numDocs);
         inverted_list->open(this->indexPath, invertedListStart);
     }
 

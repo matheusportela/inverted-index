@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <queue>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -28,10 +29,8 @@ class QueryEngine {
 
   private:
     std::vector<std::string> splitQuery(std::string query_string);
-    std::vector<std::tuple<doc_id, float, std::vector<int>>> getDocuments(std::vector<std::string> terms);
+    std::vector<std::tuple<std::string, float, std::vector<int>>> findTopDocuments(std::vector<std::string> terms);
     float calculateBM25Score(float average_document_size, int document_table_size, int inverted_list_length, int term_frequency, int document_length);
-    std::vector<std::tuple<doc_id, float, std::vector<int>>> getTopDocuments(std::vector<std::tuple<doc_id, float, std::vector<int>>> documents);
-    std::vector<std::tuple<std::string, float, std::vector<int>>> getTopURLs(std::vector<std::tuple<doc_id, float, std::vector<int>>> top_documents);
 
     std::string dir;
     std::shared_ptr<DocumentTable> document_table;

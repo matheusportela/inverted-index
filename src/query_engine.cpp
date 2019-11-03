@@ -14,12 +14,7 @@ void QueryEngine::load() {
 
 std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::query(std::string query_string) {
     auto terms = this->splitQuery(query_string);
-
-    auto document_scores = this->getDocuments(terms);
-    LOG_D("Number of documents: " << document_scores.size());
-
-    auto top_documents = this->getTopDocuments(document_scores);
-    auto result = this->getTopURLs(top_documents);
+    auto result = this->findTopDocuments(terms);
     return result;
 }
 
@@ -41,7 +36,10 @@ std::vector<std::string> QueryEngine::splitQuery(std::string query_string) {
     return terms;
 }
 
-std::vector<std::tuple<doc_id, float, std::vector<int>>> QueryEngine::getDocuments(std::vector<std::string> terms) {
+std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findTopDocuments(std::vector<std::string> terms) {
+    // Min-heap to store top documents
+    std::priority_queue<std::tuple<float, doc_id, std::vector<int>>, std::vector<std::tuple<float, doc_id, std::vector<int>>>, std::greater<std::tuple<float, doc_id, std::vector<int>>>> top_documents;
+
     // Open one list per term
     std::vector<list_p> lps;
     for (auto term : terms) {
@@ -54,7 +52,6 @@ std::vector<std::tuple<doc_id, float, std::vector<int>>> QueryEngine::getDocumen
     // Score data
     auto average_document_size = this->document_table->getAverageDocumentSize();
     auto document_table_size = this->document_table->size();
-    std::vector<std::tuple<doc_id, float, std::vector<int>>> documents;
 
     while (docID != MAX_DOC_ID) {
         // Get next post from shortest list
@@ -96,7 +93,10 @@ std::vector<std::tuple<doc_id, float, std::vector<int>>> QueryEngine::getDocumen
 
             // LOG_D("Score: " << score);
 
-            documents.push_back(std::make_tuple(docID, score, term_frequencies));
+            top_documents.push(std::make_tuple(score, docID, term_frequencies));
+            if (top_documents.size() > NUM_TOP_DOCUMENTS) {
+                top_documents.pop();
+            }
 
             // Go to next document
             // docID++;
@@ -108,7 +108,20 @@ std::vector<std::tuple<doc_id, float, std::vector<int>>> QueryEngine::getDocumen
         this->inverted_index->close(lp);
     }
 
-    return documents;
+    // Convert heap to vector
+    std::vector<std::tuple<std::string, float, std::vector<int>>> result;
+
+    while (!top_documents.empty()) {
+        auto [score, docID, term_frequencies] = top_documents.top();
+        auto url = this->document_table->getDocumentURL(docID);
+        result.push_back(std::make_tuple(url, score, term_frequencies));
+        top_documents.pop();
+    }
+
+    // Invert min heap to max results
+    std::sort(result.begin(), result.end(), [](auto &a, auto &b) { return std::get<1>(a) > std::get<1>(b); });
+
+    return result;
 }
 
 float QueryEngine::calculateBM25Score(float average_document_size, int document_table_size, int inverted_list_size, int term_frequency, int document_size) {
@@ -122,28 +135,4 @@ float QueryEngine::calculateBM25Score(float average_document_size, int document_
     float score = idf*(term_frequency*(k + 1))/(term_frequency + k*(1 - b + b*document_size/average_document_size));
 
     return score;
-}
-
-std::vector<std::tuple<doc_id, float, std::vector<int>>> QueryEngine::getTopDocuments(std::vector<std::tuple<doc_id, float, std::vector<int>>> documents) {
-    sort(documents.begin(), documents.end(), [](auto &a, auto &b) { return std::get<1>(a) > std::get<1>(b); });
-
-    std::vector<std::tuple<doc_id, float, std::vector<int>>> top_documents(documents);
-
-    // Limit number of documents
-    if (documents.size() > NUM_TOP_DOCUMENTS) {
-        top_documents = std::vector<std::tuple<doc_id, float, std::vector<int>>>(documents.begin(), documents.begin() + NUM_TOP_DOCUMENTS);
-    }
-
-    return top_documents;
-}
-
-std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::getTopURLs(std::vector<std::tuple<doc_id, float, std::vector<int>>> top_documents) {
-    std::vector<std::tuple<std::string, float, std::vector<int>>> result;
-
-    for (auto [docID, score, term_frequencies] : top_documents) {
-        auto url = this->document_table->getDocumentURL(docID);
-        result.push_back(std::make_tuple(url, score, term_frequencies));
-    }
-
-    return result;
 }
