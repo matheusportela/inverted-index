@@ -228,6 +228,12 @@ void InvertedList::readDocumentIDs(std::ifstream& fd, uint32_t numBytes) {
     auto bytestream = this->readByteStream(fd, numBytes);
     auto diffDocIDs = Compression::decode(bytestream);
 
+    LOG_D("Compressed doc IDs");
+    for (auto b : bytestream) {
+        LOG_D(std::bitset<8>(b));
+    }
+
+    LOG_D("Decompressed doc IDs");
     uint32_t docID = 0;
     for (auto diffDocID : diffDocIDs) {
         docID = docID + diffDocID;
@@ -244,11 +250,16 @@ void InvertedList::readFrequencies(std::ifstream& fd, uint32_t numBytes) {
     auto bytestream = this->readByteStream(fd, numBytes);
     auto frequencies = Compression::decode(bytestream);
 
+    // LOG_D("Compressed frequencies");
+    // for (auto b : bytestream) {
+    //     LOG_D(std::bitset<8>(b));
+    // }
+
     for (auto frequency : frequencies) {
         // this->frequencies.push_back(frequency);
         this->blockFrequencies.push(frequency);
 
-        LOG_D(frequency);
+        // LOG_D(frequency);
     }
     LOG_D("Read frequencies: " << this->blockFrequencies.size());
 }
