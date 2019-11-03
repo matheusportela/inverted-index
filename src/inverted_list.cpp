@@ -1,4 +1,5 @@
 #include "inverted_list.hpp"
+#include <bitset>
 
 list_p InvertedList::nextAvailableID = 0;
 
