@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 
     uint64_t start = std::stoull(param1);
     uint64_t end = std::stoull(param2);
-    auto bytes = end - start - 1;
+    auto bytes = end - start;
 
     std::cout << "start: " << start << std::endl;
     std::cout << "end: " << end << std::endl;
