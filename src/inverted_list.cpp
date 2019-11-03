@@ -274,6 +274,8 @@ uint32_t InvertedList::readUInt32(std::ifstream& fd) {
     // Little endian
     result = buffer[0] | buffer[1] << 8 | buffer[2] << 16 | buffer[3] << 24;
 
+    // fd.read((char*)&result, sizeof(result));
+
     return result;
 }
 
@@ -290,7 +292,7 @@ std::vector<uint8_t> InvertedList::readByteStream(std::ifstream& fd, uint32_t nu
     return bytestream;
 }
 
-void InvertedList::open(std::string path, int offset) {
+void InvertedList::open(std::string path, uint64_t offset) {
     LOG_D("Opening inverted list term " << this->term);
     this->indexFileStream.open(path, std::ofstream::in | std::ofstream::binary);
     this->indexFileStream.seekg(offset);

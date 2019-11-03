@@ -39,7 +39,7 @@ class InvertedList {
     int write(std::ofstream& fd);
     void read(std::ifstream& fd);
 
-    void open(std::string path, int offset);
+    void open(std::string path, uint64_t offset);
     void close();
     doc_id nextGEQ(doc_id docID);
 
