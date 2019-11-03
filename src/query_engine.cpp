@@ -39,6 +39,11 @@ std::vector<std::string> QueryEngine::splitQuery(std::string query_string) {
 std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findTopDocuments(std::vector<std::string> terms) {
     LOG_D("Finding top documents");
 
+    std::vector<std::tuple<std::string, float, std::vector<int>>> result;
+    if (terms.size() == 0) {
+        return result;
+    }
+
     // Min-heap to store top documents
     std::priority_queue<std::tuple<float, doc_id, std::vector<int>>, std::vector<std::tuple<float, doc_id, std::vector<int>>>, std::greater<std::tuple<float, doc_id, std::vector<int>>>> top_documents;
 
@@ -123,8 +128,6 @@ std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findT
     }
 
     // Convert heap to vector
-    std::vector<std::tuple<std::string, float, std::vector<int>>> result;
-
     while (!top_documents.empty()) {
         auto [score, docID, term_frequencies] = top_documents.top();
         auto url = this->document_table->getDocumentURL(docID);
