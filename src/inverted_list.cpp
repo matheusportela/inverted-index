@@ -88,29 +88,27 @@ int InvertedList::writeBlock(std::ofstream& fd, block_t block) {
     std::vector<uint8_t> compressedFrequencies = this->compressFrequencies(frequencies);
 
     uint32_t lastDocID = block[numDocs - 1].first;
-    // uint32_t docIDsSize = docIDs.size()*sizeof(uint32_t);
-    // uint32_t freqsSize = frequencies.size()*sizeof(uint32_t);
     uint32_t docIDsSize = compressedDocIDs.size()*sizeof(uint8_t);
     uint32_t freqsSize = compressedFrequencies.size()*sizeof(uint8_t);
     uint32_t blockSize = sizeof(docIDsSize) + docIDsSize
                        + sizeof(freqsSize) + freqsSize;
 
+    // Block metadata
     fd.write((char*)&lastDocID, sizeof(lastDocID));
     bytes += sizeof(lastDocID);
 
     fd.write((char*)&blockSize, sizeof(blockSize));
     bytes += sizeof(blockSize);
 
+    // Block data
     fd.write((char*)&docIDsSize, sizeof(docIDsSize));
     bytes += sizeof(docIDsSize);
 
-    // bytes += this->writeDocumentIDs(fd, docIDs);
     bytes += this->writeByteStream(fd, compressedDocIDs);
 
     fd.write((char*)&freqsSize, sizeof(freqsSize));
     bytes += sizeof(freqsSize);
 
-    // bytes += this->writeFrequencies(fd, frequencies);
     bytes += this->writeByteStream(fd, compressedFrequencies);
 
     return bytes;
@@ -161,37 +159,10 @@ std::vector<block_t> InvertedList::splitBlocks() {
     return blocks;
 }
 
-int InvertedList::writeDocumentIDs(std::ofstream& fd, std::vector<doc_id> docIDs) {
-    int bytes = 0;
-    doc_id previousDocID = 0;
-    for (auto docID : docIDs) {
-        // Write docID as differences for later compression
-        uint32_t compressedDocID = docID - previousDocID;
-        previousDocID = docID;
-
-        fd.write((char*)&compressedDocID, sizeof(compressedDocID));
-        bytes += sizeof(compressedDocID);
-    }
-
-    return bytes;
-}
-
-int InvertedList::writeFrequencies(std::ofstream& fd, std::vector<int> frequencies) {
-    int bytes = 0;
-
-    for (auto frequency : frequencies) {
-        uint32_t freq = frequency;
-        fd.write((char*)&freq, sizeof(freq));
-        bytes += sizeof(freq);
-    }
-
-    return bytes;
-}
-
 int InvertedList::writeByteStream(std::ofstream& fd, std::vector<uint8_t> bytestream) {
     int bytes = 0;
 
-    for (auto b : bytestream) {
+    for (uint8_t b : bytestream) {
         fd.write((char*)&b, sizeof(b));
         bytes += sizeof(b);
     }
@@ -204,19 +175,12 @@ void InvertedList::read(std::ifstream& fd) {
     // this->frequencies.clear();
 
     this->readMetadata(fd);
-    // this->readBlocks(fd);
-
-    // LOG_D("Number of docs for term '" << term << "': " << this->numDocs);
-
-    // TODO: Only read first block if necessary
     this->readBlockMetadata(fd);
     this->readBlock(fd);
 }
 
 void InvertedList::readMetadata(std::ifstream& fd) {
     LOG_D("Reading inverted list metadata for term " << this->term);
-    // fd.read((char*)&this->numDocs, sizeof(this->numDocs));
-    // fd.read((char*)&this->numBlocks, sizeof(this->numBlocks));
 
     this->numDocs = this->readUInt32(fd);
     LOG_D("Num docs: " << this->numDocs);
@@ -227,20 +191,12 @@ void InvertedList::readMetadata(std::ifstream& fd) {
     LOG_D("Read inverted list metadata for term " << this->term);
 }
 
-void InvertedList::readBlocks(std::ifstream& fd) {
-    for (int i = 0; i < this->numBlocks; i++) {
-        this->readBlock(fd);
-    }
-}
-
 void InvertedList::readBlockMetadata(std::ifstream& fd) {
     LOG_D("Reading block metadata for term " << this->term);
 
-    // fd.read((char*)&this->blockLastDocID, sizeof(this->blockLastDocID));
     this->blockLastDocID = this->readUInt32(fd);
     LOG_D("blockLastDocID: " << this->blockLastDocID);
 
-    // fd.read((char*)&this->blockSize, sizeof(this->blockSize));
     this->blockSize = this->readUInt32(fd);
     LOG_D("blockSize: " << this->blockSize);
 
@@ -254,16 +210,10 @@ void InvertedList::readBlockMetadata(std::ifstream& fd) {
 void InvertedList::readBlock(std::ifstream& fd) {
     LOG_D("Reading block for term " << this->term);
 
-    // uint32_t docIDsSize;
-    // fd.read((char*)&docIDsSize, sizeof(docIDsSize));
-
     uint32_t docIDsSize = this->readUInt32(fd);
     LOG_D("docIDsSize: " << docIDsSize);
 
     this->readDocumentIDs(fd, docIDsSize);
-
-    // uint32_t freqsSize;
-    // fd.read((char*)&freqsSize, sizeof(freqsSize));
 
     uint32_t freqsSize = this->readUInt32(fd);
     LOG_D("freqsSize: " << freqsSize);
