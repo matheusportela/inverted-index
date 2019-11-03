@@ -37,6 +37,8 @@ std::vector<std::string> QueryEngine::splitQuery(std::string query_string) {
 }
 
 std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findTopDocuments(std::vector<std::string> terms) {
+    LOG_D("Finding top documents");
+
     // Min-heap to store top documents
     std::priority_queue<std::tuple<float, doc_id, std::vector<int>>, std::vector<std::tuple<float, doc_id, std::vector<int>>>, std::greater<std::tuple<float, doc_id, std::vector<int>>>> top_documents;
 
@@ -54,6 +56,8 @@ std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findT
     auto document_table_size = this->document_table->size();
 
     while (docID != MAX_DOC_ID) {
+        LOG_D("docID: " << docID);
+
         // Get next post from shortest list
         docID = this->inverted_index->next(lps[0], docID);
 
@@ -93,9 +97,19 @@ std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findT
 
             // LOG_D("Score: " << score);
 
-            top_documents.push(std::make_tuple(score, docID, term_frequencies));
-            if (top_documents.size() > NUM_TOP_DOCUMENTS) {
-                top_documents.pop();
+            // Add to heap document to heap if
+            // 1 - there aren't 10 docs yet
+            // 2 - score is greater than minimum score
+            if (top_documents.size() < NUM_TOP_DOCUMENTS || score > std::get<0>(top_documents.top())) {
+                LOG_D("Adding document to top documents");
+                top_documents.push(std::make_tuple(score, docID, term_frequencies));
+
+                // Remove document with smallest score when heap is full
+                if (top_documents.size() > NUM_TOP_DOCUMENTS) {
+                    top_documents.pop();
+                }
+            } else {
+                LOG_D("Discarding document due to low score");
             }
 
             // Go to next document
@@ -118,8 +132,8 @@ std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findT
         top_documents.pop();
     }
 
-    // Invert min heap to max results
-    std::sort(result.begin(), result.end(), [](auto &a, auto &b) { return std::get<1>(a) > std::get<1>(b); });
+    // Reverse min heap to max results
+    std::reverse(result.begin(), result.end());
 
     return result;
 }

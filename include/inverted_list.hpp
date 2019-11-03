@@ -6,6 +6,7 @@
 #define INVERTED_LIST_HPP
 
 #include <fstream>
+#include <queue>
 #include <string>
 #include <vector>
 
@@ -60,6 +61,7 @@ class InvertedList {
     void readBlock(std::ifstream& fd);
     void readDocumentIDs(std::ifstream& fd, uint32_t numBytes);
     void readFrequencies(std::ifstream& fd, uint32_t numBytes);
+    uint32_t readUInt32(std::ifstream& fd);
     std::vector<uint8_t> readByteStream(std::ifstream& fd, uint32_t numBytes);
 
     void skipBlock(std::ifstream& fd);
@@ -77,8 +79,12 @@ class InvertedList {
     std::vector<posting_t> postings;
 
     // Attributes used when reading from file
+    std::queue<doc_id> blockDocIDs;
+    std::queue<int> blockFrequencies;
+
     uint32_t numDocs {0};
     uint32_t numBlocks {0};
+
     uint32_t currentDocID {0};
     int currentFrequency {0};
 

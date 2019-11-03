@@ -98,15 +98,8 @@ list_p InvertedIndex::open(std::string term) {
     auto inverted_list = std::make_shared<InvertedList>(term);
 
     // Only read from file when term has documents as returned by the lexicon
+    LOG_D("Number of docs for term " << term << ": " << numDocs);
     if (numDocs > 0) {
-        // std::ifstream fd(this->indexPath, std::ofstream::in | std::ofstream::binary);
-        // fd.seekg(invertedListStart);
-
-        // inverted_list->read(fd);
-
-        // fd.close();
-
-        LOG_D("Number of docs for term " << term << ": " << numDocs);
         inverted_list->open(this->indexPath, invertedListStart);
     }
 
@@ -115,6 +108,7 @@ list_p InvertedIndex::open(std::string term) {
 }
 
 void InvertedIndex::close(list_p lp) {
+    this->openLists[lp]->close();
     this->openLists.erase(lp);
 }
 
