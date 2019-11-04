@@ -35,9 +35,9 @@ std::vector<uint8_t> Compression::encodeNumber(uint32_t number) {
     // Flip first bit of last byte
     bytes[bytes.size() - 1] += 128;
 
-    for (auto byte : bytes) {
-        // LOG_D(std::bitset<8>(byte));
-    }
+    // for (auto byte : bytes) {
+    //     LOG_D(std::bitset<8>(byte));
+    // }
 
     return bytes;
 }

@@ -230,9 +230,9 @@ void InvertedList::readDocumentIDs(std::ifstream& fd, uint32_t numBytes) {
     auto diffDocIDs = Compression::decode(bytestream);
 
     // LOG_D("Compressed doc IDs");
-    for (auto b : bytestream) {
-        // LOG_D(std::bitset<8>(b));
-    }
+    // for (auto b : bytestream) {
+    //     LOG_D(std::bitset<8>(b));
+    // }
 
     // LOG_D("Decompressed doc IDs");
     uint32_t docID = 0;
