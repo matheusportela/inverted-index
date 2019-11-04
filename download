@@ -4,6 +4,6 @@ mkdir -p data/common-crawl
 cd data/
 wget https://commoncrawl.s3.amazonaws.com/crawl-data/CC-MAIN-2019-39/wet.paths.gz
 gzip -d wet.paths.gz
-head -n 120 wet.paths | xargs -I {} wget "https://commoncrawl.s3.amazonaws.com/{}"
+head -n 150 wet.paths | xargs -I {} wget "https://commoncrawl.s3.amazonaws.com/{}"
 gzip -d CC-MAIN*.gz
 mv CC-MAIN*.wet common-crawl
