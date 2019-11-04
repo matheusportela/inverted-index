@@ -37,7 +37,7 @@ int main() {
         LOG_D("Querying '" << query << "'");
 
         auto search_result = query_engine.query(query);
-        std::cout << "number of documents: " << search_result.size() << std::endl;
+        std::cout << "results: ";
 
         if (search_result.size() == 0)
             continue;
