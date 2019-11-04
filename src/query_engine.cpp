@@ -61,7 +61,7 @@ std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findT
     auto document_table_size = this->document_table->size();
 
     while (docID != MAX_DOC_ID) {
-        LOG_D("docID: " << docID);
+        // LOG_D("docID: " << docID);
 
         // Get next post from shortest list
         docID = this->inverted_index->next(lps[0], docID);
@@ -106,7 +106,7 @@ std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findT
             // 1 - there aren't 10 docs yet
             // 2 - score is greater than minimum score
             if (top_documents.size() < NUM_TOP_DOCUMENTS || score > std::get<0>(top_documents.top())) {
-                LOG_D("Adding document to top documents");
+                // LOG_D("Adding document to top documents");
                 top_documents.push(std::make_tuple(score, docID, term_frequencies));
 
                 // Remove document with smallest score when heap is full
@@ -114,7 +114,7 @@ std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findT
                     top_documents.pop();
                 }
             } else {
-                LOG_D("Discarding document due to low score");
+                // LOG_D("Discarding document due to low score");
             }
 
             // Go to next document
