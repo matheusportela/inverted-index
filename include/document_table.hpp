@@ -27,6 +27,7 @@
 #include <tuple>
 #include <vector>
 
+#include "log.hpp"
 #include "types.hpp"
 
 class DocumentTable {
@@ -43,8 +44,13 @@ class DocumentTable {
     // Return document size from table given document ID
     int getDocumentSize(doc_id documentID);
 
-    // Return average document size when table is loaded
-    float getAverageDocumentSize();
+    uint64_t getDocumentBegin(doc_id documentID);
+    uint64_t getDocumentLength(doc_id documentID);
+    std::string getDocumentPath(doc_id documentID);
+    std::string getDocumentText(doc_id docID);
+
+    // Return average number of terms in all documents when table is loaded
+    float getAverageNumberOfTerms();
 
     // Load document table from file
     void load();
@@ -53,9 +59,9 @@ class DocumentTable {
     std::string documentTableFilePath;
 
     // Maps doc_id to (URL, page size)
-    std::vector<std::tuple<std::string, int>> documents;
+    std::vector<std::tuple<std::string, int, uint64_t, uint64_t, std::string>> documents;
 
-    float average_document_size;
+    float average_num_terms;
 };
 
 #endif // DOCUMENT_TABLE_HPP

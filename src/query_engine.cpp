@@ -12,7 +12,7 @@ void QueryEngine::load() {
     this->inverted_index->load();
 }
 
-std::vector<std::tuple<std::string, float, int, std::vector<int>>> QueryEngine::query(std::string query_string) {
+std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> QueryEngine::query(std::string query_string) {
     auto terms = this->splitQuery(query_string);
     auto result = this->findTopDocuments(terms);
     return result;
@@ -36,10 +36,10 @@ std::vector<std::string> QueryEngine::splitQuery(std::string query_string) {
     return terms;
 }
 
-std::vector<std::tuple<std::string, float, int, std::vector<int>>> QueryEngine::findTopDocuments(std::vector<std::string> terms) {
+std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> QueryEngine::findTopDocuments(std::vector<std::string> terms) {
     LOG_D("Finding top documents");
 
-    std::vector<std::tuple<std::string, float, int, std::vector<int>>> result;
+    std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> result;
     if (terms.size() == 0) {
         return result;
     }
@@ -57,7 +57,7 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>>> QueryEngine::
     doc_id docID = 0;
 
     // Score data
-    auto average_document_size = this->document_table->getAverageDocumentSize();
+    auto average_num_terms = this->document_table->getAverageNumberOfTerms();
     auto document_table_size = this->document_table->size();
 
     while (docID != MAX_DOC_ID) {
@@ -91,7 +91,7 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>>> QueryEngine::
                 auto document_size = this->document_table->getDocumentSize(docID);
                 auto inverted_list_size = this->inverted_index->getNumDocuments(lp);
 
-                auto term_score = this->calculateBM25Score(average_document_size, document_table_size, inverted_list_size, term_frequency, document_size);
+                auto term_score = this->calculateBM25Score(average_num_terms, document_table_size, inverted_list_size, term_frequency, document_size);
 
                 // LOG_D("Term score: " << term_score);
 
@@ -130,9 +130,12 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>>> QueryEngine::
     // Convert heap to vector
     while (!top_documents.empty()) {
         auto [score, docID, term_frequencies] = top_documents.top();
+
+        auto snippet = this->generateSnippet(docID, terms);
+
         auto url = this->document_table->getDocumentURL(docID);
         auto document_size = this->document_table->getDocumentSize(docID);
-        result.push_back(std::make_tuple(url, score, document_size, term_frequencies));
+        result.push_back(std::make_tuple(url, score, document_size, term_frequencies, snippet));
         top_documents.pop();
     }
 
@@ -142,7 +145,7 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>>> QueryEngine::
     return result;
 }
 
-float QueryEngine::calculateBM25Score(float average_document_size, int document_table_size, int inverted_list_size, int term_frequency, int document_size) {
+float QueryEngine::calculateBM25Score(float average_num_terms, int document_table_size, int inverted_list_size, int term_frequency, int document_size) {
     // Okapi BM25 ranking function
     // Reference: https://en.wikipedia.org/wiki/Okapi_BM25
     const float k = 1.2;
@@ -150,7 +153,61 @@ float QueryEngine::calculateBM25Score(float average_document_size, int document_
 
     float idf = log((document_table_size - inverted_list_size + 0.5)/(inverted_list_size + 0.5));
 
-    float score = idf*(term_frequency*(k + 1))/(term_frequency + k*(1 - b + b*document_size/average_document_size));
+    float score = idf*(term_frequency*(k + 1))/(term_frequency + k*(1 - b + b*document_size/average_num_terms));
 
     return score;
+}
+
+std::string QueryEngine::generateSnippet(doc_id docID, std::vector<std::string> terms) {
+    std::string snippet;
+
+    for (auto term : terms) {
+        std::string term_snippet;
+        std::vector<std::string> term_variations = { term + " " , " " + term };
+        bool is_term_in_snippet = false;
+
+        for (auto term_variation : term_variations) {
+            if (snippet.find(term_variation) != std::string::npos) {
+                is_term_in_snippet = true;
+                break;
+            }
+        }
+
+        if (is_term_in_snippet)
+            continue;
+
+        for (auto term_variation : term_variations) {
+            term_snippet = this->generateSnippetForTerm(docID, term_variation);
+
+            if (!term_snippet.empty()) {
+                break;
+            }
+        }
+
+        if (snippet.empty()) {
+            snippet = term_snippet;
+        } else {
+            snippet += " ... " + term_snippet;
+        }
+    }
+
+    return snippet;
+}
+
+std::string QueryEngine::generateSnippetForTerm(doc_id docID, std::string term) {
+    auto text = this->document_table->getDocumentText(docID);
+
+    auto term_position = text.find(term);
+
+    if (term_position == std::string::npos)
+        return "";
+
+    auto snippet_length = 30;
+
+    if (term_position + snippet_length > text.size())
+        snippet_length = text.size() - term_position;
+
+    auto snippet = text.substr(term_position, snippet_length);
+
+    return snippet;
 }

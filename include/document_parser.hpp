@@ -101,8 +101,11 @@ class DocumentParser {
     // Append document table entry to document table file
     // @param fd - Document table file descriptor
     // @param url - Web page URL
-    // @param size - Number of terms in document
-    void appendDocumentTableEntry(std::ofstream& fd, std::string url, int size);
+    // @param num_terms - Number of terms in document
+    // @param document_begin - Byte position of document in WET file
+    // @param document_length - Number of characters in document
+    // @param path - File containing document
+    void appendDocumentTableEntry(std::ofstream& fd, std::string url, int num_terms, uint64_t document_begin, uint64_t document_length, std::string path);
 
     // Generate unique, monotonically increasing document ID starting from 0
     // @return Unique document ID

@@ -4,14 +4,19 @@ WETParser::WETParser(std::string path) : path(path), eof(false) {
     this->infile.open(path);
 }
 
-std::pair<std::string, std::vector<std::pair<std::string, int>>> WETParser::parseDocument() {
+std::tuple<std::string, std::vector<std::pair<std::string, int>>, uint64_t, uint64_t> WETParser::parseDocument() {
+    auto document_begin = this->currentPosition;
+    LOG_D("Document start: " << document_begin);
     auto lines = this->parseDocumentLines();
+    auto document_end = this->currentPosition;
+    auto document_length = document_end - document_begin;
+    LOG_D("Document end: " << document_end);
     auto headers = this->parseDocumentHeaders(lines);
     auto content = this->parseDocumentContent(lines);
     auto url = this->parseDocumentURL(headers);
     auto terms = this->parseDocumentTerms(content);
     auto frequencies = this->calculateFrequencies(terms);
-    return std::make_pair(url, frequencies);
+    return std::make_tuple(url, frequencies, document_begin, document_length);
 }
 
 std::vector<std::string> WETParser::parseDocumentLines() {
@@ -41,8 +46,15 @@ std::string WETParser::parseLine() {
 
     // Read line from input stream char by char
     char c;
-    while (this->infile.get(c) && c != '\n')
+    while (this->infile.get(c)) {
+        this->currentPosition++;
+
+        if (c == '\n')
+            break;
+
         ss << c;
+    }
+
     line = ss.str();
 
     // Check for EOF

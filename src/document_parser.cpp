@@ -48,7 +48,7 @@ void DocumentParser::parseWETFile(std::string wetFilePath, std::string postingFi
         // if (numParsedDocuments == 1000)
         //     break;
 
-        auto [url, frequencies] = parser.parseDocument();
+        auto [url, frequencies, document_begin, document_length] = parser.parseDocument();
 
         // Ignore parsed documents without URL
         if (url.empty())
@@ -57,13 +57,13 @@ void DocumentParser::parseWETFile(std::string wetFilePath, std::string postingFi
         auto docID = this->generateDocumentID();
 
         // Calculate document size based on the number of parsed terms
-        auto size = frequencies.size();
+        auto num_terms = frequencies.size();
 
         // Save parsed postings to postings file
         this->appendPostingEntries(postingsFileStream, docID, frequencies);
 
         // Save document table entry to document table file
-        this->appendDocumentTableEntry(this->documentTableFileStream, url, size);
+        this->appendDocumentTableEntry(this->documentTableFileStream, url, num_terms, document_begin, document_length, wetFilePath);
 
         numParsedDocuments++;
     }
@@ -88,10 +88,16 @@ void DocumentParser::appendPostingEntry(std::ofstream& fd, doc_id docID, std::st
     fd << '\n';
 }
 
-void DocumentParser::appendDocumentTableEntry(std::ofstream& fd, std::string url, int size) {
+void DocumentParser::appendDocumentTableEntry(std::ofstream& fd, std::string url, int num_terms, uint64_t document_begin, uint64_t document_length, std::string path) {
     fd << url;
     fd << ' ';
-    fd << size;
+    fd << num_terms;
+    fd << ' ';
+    fd << document_begin;
+    fd << ' ';
+    fd << document_length;
+    fd << ' ';
+    fd << path;
     fd << '\n';
 }
 

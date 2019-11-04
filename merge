@@ -11,6 +11,6 @@ done
 echo "$(date) - Merging to merged-postings.txt"
 sort -t ' ' -k 1,1 -k 2,2n -m -o merged-postings.txt postings-*.txt
 
-# rm postings-*.txt
+rm postings-*.txt
 
 echo "$(date) - Merged intermediate postings"
