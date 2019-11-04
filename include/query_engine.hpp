@@ -25,11 +25,11 @@ class QueryEngine {
   public:
     QueryEngine(std::string dir);
     void load();
-    std::vector<std::tuple<std::string, float, std::vector<int>>> query(std::string query_string);
+    std::vector<std::tuple<std::string, float, int, std::vector<int>>> query(std::string query_string);
 
   private:
     std::vector<std::string> splitQuery(std::string query_string);
-    std::vector<std::tuple<std::string, float, std::vector<int>>> findTopDocuments(std::vector<std::string> terms);
+    std::vector<std::tuple<std::string, float, int, std::vector<int>>> findTopDocuments(std::vector<std::string> terms);
     float calculateBM25Score(float average_document_size, int document_table_size, int inverted_list_length, int term_frequency, int document_length);
 
     std::string dir;

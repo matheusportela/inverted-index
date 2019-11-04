@@ -37,13 +37,14 @@ int main() {
         LOG_D("Querying '" << query << "'");
 
         auto search_result = query_engine.query(query);
-        std::cout << "results: ";
+        std::cout << "results: " << std::endl;
 
         if (search_result.size() == 0)
             continue;
 
-        for (auto [url, score, term_frequencies] : search_result) {
+        for (auto [url, score, document_size, term_frequencies] : search_result) {
             std::cout << "score: " << score << " ";
+            std::cout << "size: " << document_size << " ";
 
             std::cout << "terms: ";
             for (auto term_frequency : term_frequencies)

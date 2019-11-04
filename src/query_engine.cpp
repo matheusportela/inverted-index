@@ -12,7 +12,7 @@ void QueryEngine::load() {
     this->inverted_index->load();
 }
 
-std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::query(std::string query_string) {
+std::vector<std::tuple<std::string, float, int, std::vector<int>>> QueryEngine::query(std::string query_string) {
     auto terms = this->splitQuery(query_string);
     auto result = this->findTopDocuments(terms);
     return result;
@@ -36,10 +36,10 @@ std::vector<std::string> QueryEngine::splitQuery(std::string query_string) {
     return terms;
 }
 
-std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findTopDocuments(std::vector<std::string> terms) {
+std::vector<std::tuple<std::string, float, int, std::vector<int>>> QueryEngine::findTopDocuments(std::vector<std::string> terms) {
     LOG_D("Finding top documents");
 
-    std::vector<std::tuple<std::string, float, std::vector<int>>> result;
+    std::vector<std::tuple<std::string, float, int, std::vector<int>>> result;
     if (terms.size() == 0) {
         return result;
     }
@@ -131,7 +131,8 @@ std::vector<std::tuple<std::string, float, std::vector<int>>> QueryEngine::findT
     while (!top_documents.empty()) {
         auto [score, docID, term_frequencies] = top_documents.top();
         auto url = this->document_table->getDocumentURL(docID);
-        result.push_back(std::make_tuple(url, score, term_frequencies));
+        auto document_size = this->document_table->getDocumentSize(docID);
+        result.push_back(std::make_tuple(url, score, document_size, term_frequencies));
         top_documents.pop();
     }
 
