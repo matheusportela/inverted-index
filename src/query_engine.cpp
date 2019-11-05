@@ -7,8 +7,9 @@ QueryEngine::QueryEngine(std::string dir) {
 }
 
 void QueryEngine::load() {
-    LOG_I("Loading document table");
+    LOG_D("Loading document table");
     this->document_table->load();
+    LOG_D("Loading lexicon table");
     this->inverted_index->load();
 }
 

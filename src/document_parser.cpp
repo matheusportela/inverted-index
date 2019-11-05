@@ -97,7 +97,7 @@ void DocumentParser::appendDocumentTableEntry(std::ofstream& fd, std::string url
     fd << ' ';
     fd << document_length;
     fd << ' ';
-    fd << path;
+    fd << path.substr(59, 5); // only write WET file number
     fd << '\n';
 }
 

@@ -15,8 +15,6 @@ int main() {
 
     LOG_I("Initializing query engine");
 
-    LOG_I("Loading document table");
-
     QueryEngine query_engine(path);
     query_engine.load();
 

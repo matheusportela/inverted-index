@@ -25,7 +25,9 @@ uint64_t DocumentTable::getDocumentLength(doc_id documentID) {
 }
 
 std::string DocumentTable::getDocumentPath(doc_id documentID) {
-    return std::get<4>(this->documents[documentID]);
+    std::string wet_file_number = std::get<4>(this->documents[documentID]);
+    std::string path = "../data/common-crawl/CC-MAIN-20190915052433-20190915074433-" + wet_file_number + ".warc.wet";
+    return path;
 }
 
 std::string DocumentTable::getDocumentText(doc_id docID) {
@@ -69,7 +71,7 @@ void DocumentTable::load() {
     int num_terms;
     uint64_t document_begin;
     uint64_t document_length;
-    std::string path;
+    std::string wet_file_number;
 
     this->documents.clear();
 
@@ -80,19 +82,13 @@ void DocumentTable::load() {
         fd >> num_terms;
         fd >> document_begin;
         fd >> document_length;
-        fd >> path;
-
-        // LOG_D("url: " << url);
-        // LOG_D("num_terms: " << num_terms);
-        // LOG_D("document_begin: " << document_begin);
-        // LOG_D("document_length: " << document_length);
-        // LOG_D("path: " << path);
+        fd >> wet_file_number;
 
         if (fd.eof())
             break;
 
         // Add to documents list
-        this->documents.push_back(std::make_tuple(url, num_terms, document_begin, document_length, path));
+        this->documents.push_back(std::make_tuple(url, num_terms, document_begin, document_length, wet_file_number));
 
         // Update cumulative moving average
         // Reference: https://en.wikipedia.org/wiki/Moving_average#Cumulative_moving_average
