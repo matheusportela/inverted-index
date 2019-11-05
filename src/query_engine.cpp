@@ -15,7 +15,8 @@ void QueryEngine::load() {
 
 std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> QueryEngine::query(std::string query_string) {
     auto terms = this->splitQuery(query_string);
-    auto result = this->findTopDocuments(terms);
+    // auto result = this->runConjunctiveQuery(terms);
+    auto result = this->runDisjunctiveQuery(terms);
     return result;
 }
 
@@ -37,8 +38,8 @@ std::vector<std::string> QueryEngine::splitQuery(std::string query_string) {
     return terms;
 }
 
-std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> QueryEngine::findTopDocuments(std::vector<std::string> terms) {
-    LOG_D("Finding top documents");
+std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> QueryEngine::runConjunctiveQuery(std::vector<std::string> terms) {
+    LOG_D("Running conjunctive query");
 
     std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> result;
     if (terms.size() == 0) {
@@ -120,6 +121,109 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
 
             // Go to next document
             // docID++;
+        }
+    }
+
+    // Close all lists
+    for (auto lp : lps) {
+        this->inverted_index->close(lp);
+    }
+
+    // Convert heap to vector
+    while (!top_documents.empty()) {
+        auto [score, docID, term_frequencies] = top_documents.top();
+
+        auto snippet = this->generateSnippet(docID, terms);
+
+        auto url = this->document_table->getDocumentURL(docID);
+        auto document_size = this->document_table->getDocumentSize(docID);
+        result.push_back(std::make_tuple(url, score, document_size, term_frequencies, snippet));
+        top_documents.pop();
+    }
+
+    // Reverse min heap to max results
+    std::reverse(result.begin(), result.end());
+
+    return result;
+}
+
+std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> QueryEngine::runDisjunctiveQuery(std::vector<std::string> terms) {
+    LOG_D("Running disjunctive query");
+
+    std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> result;
+    if (terms.size() == 0) {
+        return result;
+    }
+
+    // Min-heap to store top documents
+    std::priority_queue<std::tuple<float, doc_id, std::vector<int>>, std::vector<std::tuple<float, doc_id, std::vector<int>>>, std::greater<std::tuple<float, doc_id, std::vector<int>>>> top_documents;
+
+    // Min-heap to store docID and lists
+    std::priority_queue<std::tuple<doc_id, list_p>, std::vector<std::tuple<doc_id, list_p>>, std::greater<std::tuple<doc_id, list_p>>> doc_id_and_list;
+
+    // Open one list per term
+    std::vector<list_p> lps;
+    for (auto term : terms) {
+        auto lp = this->inverted_index->open(term);
+        lps.push_back(lp);
+
+        auto docID = this->inverted_index->next(lp, 0);
+        doc_id_and_list.push(std::make_tuple(docID, lp));
+    }
+
+    // Score data
+    auto average_num_terms = this->document_table->getAverageNumberOfTerms();
+    auto document_table_size = this->document_table->size();
+
+    doc_id docID = 0;
+
+    while (docID != MAX_DOC_ID) {
+        // Get smallest docID
+        auto [docID, lp] = doc_id_and_list.top();
+        doc_id_and_list.pop();
+        doc_id_and_list.push(std::make_tuple(this->inverted_index->next(lp, docID), lp));
+
+        // Exit when reaching list end
+        if (docID == MAX_DOC_ID) {
+            break;
+        }
+
+        // Calculate score
+        auto term_frequency = this->inverted_index->getFrequency(lp);
+        auto document_size = this->document_table->getDocumentSize(docID);
+        auto inverted_list_size = this->inverted_index->getNumDocuments(lp);
+
+        auto score = this->calculateBM25Score(average_num_terms, document_table_size, inverted_list_size, term_frequency, document_size);
+
+        // Add score to other lists with same docID
+        while (docID == std::get<0>(doc_id_and_list.top())) {
+            auto [docID, other_lp] = doc_id_and_list.top();
+            doc_id_and_list.pop();
+            doc_id_and_list.push(std::make_tuple(this->inverted_index->next(lp, docID), lp));
+
+            auto term_frequency = this->inverted_index->getFrequency(other_lp);
+            auto document_size = this->document_table->getDocumentSize(docID);
+            auto inverted_list_size = this->inverted_index->getNumDocuments(other_lp);
+
+            score += this->calculateBM25Score(average_num_terms, document_table_size, inverted_list_size, term_frequency, document_size);
+        }
+
+        // TODO: Add term frequencies
+        std::vector<int> term_frequencies;
+
+        // Add to heap document to heap if
+        // 1 - there aren't 10 docs yet
+        // 2 - score is greater than minimum score
+        if (top_documents.size() < NUM_TOP_DOCUMENTS || score > std::get<0>(top_documents.top())) {
+            // LOG_D("Adding document to top documents");
+            top_documents.push(std::make_tuple(score, docID, term_frequencies));
+
+            // Remove document with smallest score when heap is full
+            if (top_documents.size() > NUM_TOP_DOCUMENTS) {
+                top_documents.pop();
+            }
+        } else {
+            // LOG_D("Discarding document due to low score");
         }
     }
 

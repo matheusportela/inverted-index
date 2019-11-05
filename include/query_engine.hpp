@@ -29,7 +29,8 @@ class QueryEngine {
 
   private:
     std::vector<std::string> splitQuery(std::string query_string);
-    std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> findTopDocuments(std::vector<std::string> terms);
+    std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> runConjunctiveQuery(std::vector<std::string> terms);
+    std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> runDisjunctiveQuery(std::vector<std::string> terms);
     float calculateBM25Score(float average_num_terms, int document_table_size, int inverted_list_length, int term_frequency, int document_length);
     std::string generateSnippet(doc_id docID, std::vector<std::string> terms);
     std::string generateSnippetForTerm(doc_id docID, std::string term);
