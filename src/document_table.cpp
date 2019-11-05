@@ -39,6 +39,13 @@ std::string DocumentTable::getDocumentText(doc_id docID) {
 
     std::ifstream fd;
     fd.open(document_path);
+
+    if (!fd.good()) {
+        LOG_W("Error opening WET file " << document_path);
+        fd.close();
+        return "";
+    }
+
     fd.seekg(document_begin);
     fd.read(buffer, document_length);
     fd.close();
