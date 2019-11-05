@@ -255,7 +255,7 @@ void InvertedList::readDocumentIDs(std::ifstream& fd, uint32_t numBytes) {
 }
 
 void InvertedList::readFrequencies(std::ifstream& fd, uint32_t numBytes) {
-    LOG_D("Reading frequencies");
+    // LOG_D("Reading frequencies");
     auto bytestream = this->readByteStream(fd, numBytes);
     auto frequencies = Compression::decode(bytestream);
 
@@ -268,7 +268,7 @@ void InvertedList::readFrequencies(std::ifstream& fd, uint32_t numBytes) {
         // this->frequencies.push_back(frequency);
         this->blockFrequencies.push(frequency);
 
-        LOG_D(frequency);
+        // LOG_D(frequency);
     }
     // LOG_D("Read frequencies: " << this->blockFrequencies.size());
 }
@@ -313,6 +313,8 @@ void InvertedList::close() {
     if (this->indexFileStream.is_open()) {
         this->indexFileStream.close();
     }
+
+    this->currentDocID = MAX_DOC_ID;
     // LOG_D("Closed inverted list term " << this->term);
 }
 
