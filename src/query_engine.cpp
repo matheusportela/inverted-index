@@ -78,6 +78,9 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
     auto average_num_terms = this->document_table->getAverageNumberOfTerms();
     auto document_table_size = this->document_table->size();
 
+    LOG_D("average_num_terms: " << average_num_terms);
+    LOG_D("document_table_size: " << document_table_size);
+
     while (docID != MAX_DOC_ID) {
         // LOG_D("docID: " << docID);
 
@@ -195,6 +198,9 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
     // Score data
     auto average_num_terms = this->document_table->getAverageNumberOfTerms();
     auto document_table_size = this->document_table->size();
+
+    LOG_D("average_num_terms: " << average_num_terms);
+    LOG_D("document_table_size: " << document_table_size);
 
     doc_id docID = 0;
 
