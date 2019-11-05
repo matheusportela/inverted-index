@@ -222,6 +222,14 @@ void InvertedList::readBlock(std::ifstream& fd) {
 
     this->readFrequencies(fd, freqsSize);
     // LOG_D("Read block for term " << this->term);
+
+    // Initialize current doc ID
+    this->currentDocID = this->blockDocIDs.front();
+    this->blockDocIDs.pop();
+
+    // Initialize current freq
+    this->currentFrequency = this->blockFrequencies.front();
+    this->blockFrequencies.pop();
 }
 
 void InvertedList::readDocumentIDs(std::ifstream& fd, uint32_t numBytes) {
@@ -247,7 +255,7 @@ void InvertedList::readDocumentIDs(std::ifstream& fd, uint32_t numBytes) {
 }
 
 void InvertedList::readFrequencies(std::ifstream& fd, uint32_t numBytes) {
-    // LOG_D("Reading frequencies");
+    LOG_D("Reading frequencies");
     auto bytestream = this->readByteStream(fd, numBytes);
     auto frequencies = Compression::decode(bytestream);
 
@@ -260,7 +268,7 @@ void InvertedList::readFrequencies(std::ifstream& fd, uint32_t numBytes) {
         // this->frequencies.push_back(frequency);
         this->blockFrequencies.push(frequency);
 
-        // LOG_D(frequency);
+        LOG_D(frequency);
     }
     // LOG_D("Read frequencies: " << this->blockFrequencies.size());
 }
@@ -313,6 +321,10 @@ doc_id InvertedList::nextGEQ(doc_id docID) {
 
     // LOG_D("Current docID: " << docID);
     // LOG_D("Block last docID: " << this->blockLastDocID);
+
+    if (this->currentDocID >= docID) {
+        return this->currentDocID;
+    }
 
     if (this->hasReadAllDocuments()) {
         // LOG_D("Reached end of inverted list");

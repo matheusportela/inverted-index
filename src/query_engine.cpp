@@ -109,16 +109,19 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
                 auto document_size = this->document_table->getDocumentSize(docID);
                 auto inverted_list_size = this->inverted_index->getNumDocuments(lp);
 
+                LOG_D("term_frequency: " << term_frequency << " " << "document_size: " << document_size << " inverted_list_size: " << inverted_list_size);
+
                 auto term_score = this->calculateBM25Score(average_num_terms, document_table_size, inverted_list_size, term_frequency, document_size);
 
                 // LOG_D("Term score: " << term_score);
+                LOG_D("docID: " << docID << " " << "lp: " << lp);
 
                 score += term_score;
 
                 term_frequencies.push_back(term_frequency);
             }
 
-            // LOG_D("Score: " << score);
+            LOG_D("Score: " << score);
 
             // Add to heap document to heap if
             // 1 - there aren't 10 docs yet
@@ -136,7 +139,7 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
             }
 
             // Go to next document
-            // docID++;
+            docID++;
         }
     }
 
@@ -178,6 +181,7 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
     std::priority_queue<std::tuple<doc_id, list_p>, std::vector<std::tuple<doc_id, list_p>>, std::greater<std::tuple<doc_id, list_p>>> doc_id_and_list;
 
     // Open one list per term
+    LOG_D("Open one list per term");
     std::vector<list_p> lps;
     for (auto term : terms) {
         auto lp = this->inverted_index->open(term);
@@ -185,6 +189,7 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
 
         auto docID = this->inverted_index->next(lp, 0);
         doc_id_and_list.push(std::make_tuple(docID, lp));
+        LOG_D("docID: " << docID << " " << "lp: " << lp);
     }
 
     // Score data
@@ -195,12 +200,13 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
 
     while (docID != MAX_DOC_ID) {
         // Get smallest docID
+        LOG_D("Get smallest docID");
         auto [docID, lp] = doc_id_and_list.top();
         doc_id_and_list.pop();
-        doc_id_and_list.push(std::make_tuple(this->inverted_index->next(lp, docID), lp));
 
         // Exit when reaching list end
         if (docID == MAX_DOC_ID) {
+            LOG_D("Reached list end");
             break;
         }
 
@@ -209,29 +215,63 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
         auto document_size = this->document_table->getDocumentSize(docID);
         auto inverted_list_size = this->inverted_index->getNumDocuments(lp);
 
+        LOG_D("term_frequency: " << term_frequency << " " << "document_size: " << document_size << " inverted_list_size: " << inverted_list_size);
+
         auto score = this->calculateBM25Score(average_num_terms, document_table_size, inverted_list_size, term_frequency, document_size);
+        LOG_D("Score: " << score);
+
+        std::unordered_map<list_p, int> lp_to_frequency;
+        lp_to_frequency[lp] = term_frequency;
+
+        // Pushing next doc ID to heap
+        auto nextDocID = this->inverted_index->next(lp, docID + 1);
+        doc_id_and_list.push(std::make_tuple(nextDocID, lp));
+        LOG_D("docID: " << docID << " " << "lp: " << lp);
+        LOG_D("nextDocID: " << nextDocID << " lp: " << lp);
 
         // Add score to other lists with same docID
         while (docID == std::get<0>(doc_id_and_list.top())) {
-            auto [docID, other_lp] = doc_id_and_list.top();
+            LOG_D("Found another list with same doc ID");
+            auto [_, other_lp] = doc_id_and_list.top();
             doc_id_and_list.pop();
-            doc_id_and_list.push(std::make_tuple(this->inverted_index->next(lp, docID), lp));
 
+            // Calculate score
             auto term_frequency = this->inverted_index->getFrequency(other_lp);
             auto document_size = this->document_table->getDocumentSize(docID);
             auto inverted_list_size = this->inverted_index->getNumDocuments(other_lp);
 
+            LOG_D("term_frequency: " << term_frequency << " " << "document_size: " << document_size << " inverted_list_size: " << inverted_list_size);
+
             score += this->calculateBM25Score(average_num_terms, document_table_size, inverted_list_size, term_frequency, document_size);
+
+            lp_to_frequency[other_lp] = term_frequency;
+
+            // Pushing next doc ID to heap
+            auto nextDocID = this->inverted_index->next(other_lp, docID + 1);
+            doc_id_and_list.push(std::make_tuple(nextDocID, other_lp));
+            LOG_D("docID: " << docID << " " << "lp: " << other_lp);
+            LOG_D("nextDocID: " << nextDocID << " lp: " << other_lp);
+
+            LOG_D("Score: " << score);
         }
 
-        // TODO: Add term frequencies
+        // Get term frequencies
         std::vector<int> term_frequencies;
+
+        for (auto lp : lps) {
+            auto it = lp_to_frequency.find(lp);
+
+            if (it != lp_to_frequency.end())
+                term_frequencies.push_back(it->second);
+            else
+                term_frequencies.push_back(0);
+        }
 
         // Add to heap document to heap if
         // 1 - there aren't 10 docs yet
         // 2 - score is greater than minimum score
         if (top_documents.size() < NUM_TOP_DOCUMENTS || score > std::get<0>(top_documents.top())) {
-            // LOG_D("Adding document to top documents");
+            LOG_D("Adding document to top documents");
             top_documents.push(std::make_tuple(score, docID, term_frequencies));
 
             // Remove document with smallest score when heap is full
@@ -239,7 +279,7 @@ std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> 
                 top_documents.pop();
             }
         } else {
-            // LOG_D("Discarding document due to low score");
+            LOG_D("Discarding document due to low score");
         }
     }
 
@@ -280,6 +320,7 @@ float QueryEngine::calculateBM25Score(float average_num_terms, int document_tabl
 }
 
 std::string QueryEngine::generateSnippet(doc_id docID, std::vector<std::string> terms) {
+    std::vector<std::string> parts;
     std::string snippet;
 
     for (auto term : terms) {
@@ -301,14 +342,17 @@ std::string QueryEngine::generateSnippet(doc_id docID, std::vector<std::string> 
             term_snippet = this->generateSnippetForTerm(docID, term_variation);
 
             if (!term_snippet.empty()) {
+                parts.push_back(term_snippet);
                 break;
             }
         }
+    }
 
-        if (snippet.empty()) {
-            snippet = term_snippet;
+    for (auto part : parts) {
+        if (snippet.size() == 0) {
+            snippet = part;
         } else {
-            snippet += " ... " + term_snippet;
+            snippet += " ... " + part;
         }
     }
 

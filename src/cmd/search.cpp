@@ -41,14 +41,16 @@ int main() {
             continue;
 
         for (auto [url, score, document_size, term_frequencies, snippet] : search_result) {
+            std::cout << "url: " << url << std::endl;
+
             std::cout << "score: " << score << " ";
             std::cout << "size: " << document_size << " ";
 
             std::cout << "terms: ";
             for (auto term_frequency : term_frequencies)
                 std::cout << term_frequency << " ";
+            std::cout << std::endl;
 
-            std::cout << "url: " << url << std::endl;
             std::cout << "snippet: " << std::endl;
             std::cout << snippet << std::endl << std::endl;
         }
