@@ -325,7 +325,7 @@ std::string QueryEngine::generateSnippet(doc_id docID, std::vector<std::string> 
 
     for (auto term : terms) {
         std::string term_snippet;
-        std::vector<std::string> term_variations = { term + " " , " " + term };
+        std::vector<std::string> term_variations = { " " + term + " " , term + " " , " " + term };
         bool is_term_in_snippet = false;
 
         for (auto term_variation : term_variations) {
