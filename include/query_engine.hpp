@@ -23,11 +23,17 @@
 
 class QueryEngine {
   public:
+    enum QueryMode {
+        CONJUNCTIVE,
+        DISJUNCTIVE
+    };
+
     QueryEngine(std::string dir);
     void load();
     std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> query(std::string query_string);
 
   private:
+    std::pair<QueryMode, std::string> processQueryMode(std::string query_string);
     std::vector<std::string> splitQuery(std::string query_string);
     std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> runConjunctiveQuery(std::vector<std::string> terms);
     std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> runDisjunctiveQuery(std::vector<std::string> terms);

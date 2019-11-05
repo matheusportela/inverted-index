@@ -14,13 +14,29 @@ void QueryEngine::load() {
 }
 
 std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> QueryEngine::query(std::string query_string) {
-    auto terms = this->splitQuery(query_string);
-    // auto result = this->runConjunctiveQuery(terms);
-    auto result = this->runDisjunctiveQuery(terms);
+    auto [mode, query_terms] = this->processQueryMode(query_string);
+    auto terms = this->splitQuery(query_terms);
+
+    std::vector<std::tuple<std::string, float, int, std::vector<int>, std::string>> result;
+    if (mode == CONJUNCTIVE)
+        result = this->runConjunctiveQuery(terms);
+    else
+        result = this->runDisjunctiveQuery(terms);
+
     return result;
 }
 
+std::pair<QueryEngine::QueryMode, std::string> QueryEngine::processQueryMode(std::string query_string) {
+    if (query_string.substr(0, 5) == "\%and ")
+        return std::make_pair(CONJUNCTIVE, query_string.substr(5));
+    else if (query_string.substr(0, 4) == "\%or ")
+        return std::make_pair(DISJUNCTIVE, query_string.substr(4));
+    else
+        return std::make_pair(CONJUNCTIVE, query_string);
+}
+
 std::vector<std::string> QueryEngine::splitQuery(std::string query_string) {
+    LOG_D("Query: " << query_string);
     std::vector<std::string> terms;
 
     std::istringstream ss(query_string);
