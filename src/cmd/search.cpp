@@ -40,15 +40,20 @@ int main() {
         if (search_result.size() == 0)
             continue;
 
-        for (auto [url, score, document_size, term_frequencies, snippet] : search_result) {
+        for (auto [url, score, document_size, term_frequencies, inverted_list_sizes, snippet] : search_result) {
             std::cout << "url: " << url << std::endl;
 
             std::cout << "score: " << score << " ";
-            std::cout << "size: " << document_size << " ";
+            std::cout << "doc_size: " << document_size << " ";
+
+            std::cout << "inv_list_sizes: ";
+            for (auto inverted_list_size : inverted_list_sizes)
+                std::cout << inverted_list_size << " ";
 
             std::cout << "terms: ";
             for (auto term_frequency : term_frequencies)
                 std::cout << term_frequency << " ";
+
             std::cout << std::endl;
 
             std::cout << "snippet: " << std::endl;
