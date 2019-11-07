@@ -11,7 +11,7 @@
 #include <bitset>
 
 int main(int argc, char* argv[]) {
-    LOG_SET_DEBUG();
+    LOG_SET_INFO();
 
     if (argc != 3) {
         std::cout << "Usage: inspector start end" << std::endl;

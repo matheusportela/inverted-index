@@ -9,7 +9,7 @@
 #include "compression.hpp"
 
 int main() {
-    LOG_SET_DEBUG();
+    LOG_SET_INFO();
 
     const std::string path = "../tmp";
 

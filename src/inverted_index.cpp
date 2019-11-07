@@ -98,7 +98,7 @@ list_p InvertedIndex::open(std::string term) {
     auto inverted_list = std::make_shared<InvertedList>(term);
 
     // Only read from file when term has documents as returned by the lexicon
-    LOG_D("Number of docs for term " << term << ": " << numDocs);
+    LOG_I("Number of docs containing term " << term << ": " << numDocs);
     if (numDocs > 0) {
         inverted_list->open(this->indexPath, invertedListStart);
     } else {

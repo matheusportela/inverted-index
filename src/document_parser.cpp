@@ -45,9 +45,6 @@ void DocumentParser::parseWETFile(std::string wetFilePath, std::string postingFi
     WETParser parser(wetFilePath);
 
     while (!parser.isEOF()) {
-        // if (numParsedDocuments == 1000)
-        //     break;
-
         auto [url, frequencies, document_begin, document_length] = parser.parseDocument();
 
         // Ignore parsed documents without URL

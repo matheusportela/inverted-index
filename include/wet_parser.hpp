@@ -53,7 +53,7 @@ class WETParser {
     WETParser(std::string path);
 
     // Parse document from WET file
-    // @return URL and vector of (term, freq, doc_begin, length) for all terms in the document
+    // @return URL and vector of ([(term, freq)], doc_begin, length) for all terms in the document
     std::tuple<std::string, std::vector<std::pair<std::string, int>>, uint64_t, uint64_t> parseDocument();
 
     // Check whether parser has reached end-of-file
